@@ -2,9 +2,10 @@
     export let value;
     export let row;
     export let col;
+    export let selected;
 </script>
 
-<td>{value}</td>
+<td on:click class={selected ? 'selected' : ''}>{value}</td>
 
 <style>
     td {
@@ -13,8 +14,12 @@
         width: 4ex;
         height: 4ex;
         font-size: 400%;
+        border: 4px solid transparent;
     }
-    tr:nth-child(even) > td:nth-child(odd), tr:nth-child(odd) > td:nth-child(even) {
+    td.selected {
+        border-color: black;
+    }
+    tr:nth-child(odd) > td:nth-child(odd), tr:nth-child(even) > td:nth-child(even) {
         background-color: #ddd;
     }
 </style>
