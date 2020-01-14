@@ -5,7 +5,7 @@ const app = new App({
   props: {
     turn: 0,
     moves: [],
-    game: Array.from('♖♗♘♕♔♗♘♖♙♙♙♙♙♙♙♙                                ♟♟♟♟♟♟♟♟♜♞♝♛♚♝♞♜')
+    game: Array.from('♖♘♗♕♔♗♘♖♙♙♙♙♙♙♙♙                                ♟♟♟♟♟♟♟♟♜♞♝♛♚♝♞♜')
   }
 });
 

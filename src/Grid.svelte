@@ -32,8 +32,6 @@
                 setPosition(-1);
             }
         } else if (game[index] != ' ') {
-            console.log(index);
-            console.log(game[index]);
             setPosition(index);
         }
     }
