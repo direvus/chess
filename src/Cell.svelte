@@ -1,7 +1,5 @@
 <script>
     export let value;
-    export let row;
-    export let col;
     export let selected;
 </script>
 

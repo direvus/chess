@@ -1,55 +1,74 @@
 <script>
-    export let game;
+    import Cell from './Cell.svelte';
 
-    let pos = [0, 0];
+    export let game;
+    export let doMove;
+    export let getCellIndex;
+    export let getColumnLabel;
+
+    let pos = -1;
+    let col = -1;
+    let row = -1;
+
     const rows = [8, 7, 6, 5, 4, 3, 2, 1];
     const cols = [1, 2, 3, 4, 5, 6, 7, 8];
 
-    import Cell from './Cell.svelte';
-
-    function getColumnLabel(col) {
-        return String.fromCharCode('a'.charCodeAt(0) + col - 1);
+    function setPosition(index) {
+        pos = index;
+        if (pos >= 0) {
+            row = Math.floor(pos / 8) + 1;
+            col = (pos % 8) + 1;
+        } else {
+            col = -1;
+            row = -1;
+        }
     }
 
-    function getGameCell(col, row) {
-        return game[(8 * (row - 1)) + col - 1];
+    function selectCell(index) {
+        if (pos == index) {
+            setPosition(-1);
+        } else if (pos >= 0 && game[pos] != ' ') {
+            if (doMove(pos, index)) {
+                setPosition(-1);
+            }
+        } else if (game[index] != ' ') {
+            console.log(index);
+            console.log(game[index]);
+            setPosition(index);
+        }
     }
-
-    const selectCell = (col, row) => pos = [col, row];
 </script>
 
 <table>
     <thead>
         <tr>
             <th></th>
-            {#each cols as col}
-            <th class={col == pos[0] ? 'selected' : ''}>{getColumnLabel(col)}</th>
+            {#each cols as c}
+            <th class={c == col ? 'selected' : ''}>{getColumnLabel(c)}</th>
             {/each}
             <th></th>
         </tr>
     </thead>
     <tbody>
-        {#each rows as row}
+        {#each rows as r}
         <tr>
-            <th class={row == pos[1] ? 'selected' : ''}>{row}</th>
-            {#each cols as col}
+            <th class={r == row ? 'selected' : ''}>{r}</th>
+            {#each cols as c}
             <Cell
-                value={getGameCell(col, row)}
-                on:click={() => selectCell(col, row)}
-                selected={col == pos[0] && row == pos[1]}
-                row={row}
-                col={col}
+                value={game[getCellIndex(c, r)]}
+                on:click={() => selectCell(getCellIndex(c, r))}
+                selected={c == col && r == row}
                 />
             {/each}
-            <th class={row == pos[1] ? 'selected' : ''}>{row}</th>
+            <th class={r == row ? 'selected' : ''}>{r}</th>
         </tr>
         {/each}
     </tbody>
     <tfoot>
         <tr>
             <th></th>
-            {#each cols as col}
-            <th class={col == pos[0] ? 'selected' : ''}>{getColumnLabel(col)}</th>
+            {#each cols as c}
+            <th class={c == col ? 'selected' : ''}>{getColumnLabel(c)}</th>
             {/each}
             <th></th>
         </tr>
