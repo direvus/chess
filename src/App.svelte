@@ -11,8 +11,8 @@
     const rook = "♖♜"
     const knight = "♘♞"
     const bishop = "♗♝"
-    const king = "♕♛"
-    const queen = "♔♚"
+    const queen = "♕♛"
+    const king = "♔♚"
 
     function getColumnLabel(col) {
         return String.fromCharCode('a'.charCodeAt(0) + col - 1);
