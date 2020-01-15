@@ -121,7 +121,37 @@
             }
         }
         if (queen.includes(piece)) {
-            // TODO: horizontals, verticals, diagonals
+            const diff = to - from;
+
+            if (Math.floor(from / 8) == Math.floor(to / 8)) {
+                // Horizontal movement
+                const step = (diff < 0) ? -1 : 1;
+                for (let i = from + step; i != to; i += step) {
+                    path.push(i);
+                }
+            } else if (diff % 8 == 0) {
+                // Vertical movement
+                const step = (diff < 0) ? -8 : 8;
+                for (let i = from + step; i != to; i += step) {
+                    path.push(i);
+                }
+            } else if (diff % 9 == 0) {
+                // NE-SW diagonal movement
+                const step = (diff < 0) ? -9 : 9;
+                for (let i = from + step; i != to; i += step) {
+                    path.push(i);
+                }
+            } else if (diff % 7 == 0) {
+                // NW-SE diagonal movement
+                const step = (diff < 0) ? -7 : 7;
+                for (let i = from + step; i != to; i += step) {
+                    path.push(i);
+                }
+            } else {
+                // Some bullshit
+                alert(`Illegal move!  Queen may only move horizontally, vertically or diagonally.`);
+                return false;
+            }
         }
         if (knight.includes(piece)) {
             const moves = [17, 10, -6, -15, -17, -10, 6, 15].map(x => from + x);
