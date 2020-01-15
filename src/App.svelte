@@ -52,12 +52,12 @@
             let target = game[to];
             game[from] = ' ';
             game[to] = piece;
-            moves = [...moves, [piece, from, to]];
-            turn += 1;
-
             // TODO: en passant
             // TODO: promotion
             // TODO: castling
+            moves = [...moves, [piece, from, to, game]];
+            turn += 1;
+
             return true;
         } else {
             return false;
@@ -68,17 +68,38 @@
         const piece = game[from];
         const target = game[to];
         const label = getCellLabel(to);
+        const side = white.includes(piece);
         let path = [];
-        if (target != ' ' && white.includes(piece) == white.includes(target)) {
+        if (target != ' ' && side == white.includes(target)) {
             alert(`Illegal move!  Square ${label} is occupied by your own piece.`);
             return false;
         }
         if (king.includes(piece)) {
-            // TODO: castling if king moves two squares
-            const moves = [7, 8, 9, -1, 1, -9, -8, -7].map(x => from + x);
-            if (!moves.includes(to)) {
-                alert(`Illegal move!  Invalid target for king.`);
-                return false;
+            if ([2, 6, 58, 62].includes(to) && [from - 2, from + 2].includes(to)) {
+                // Castling
+                const rookIndex = from + ((to > from) ? 3 : -4);
+                if (!rook.includes(game[rookIndex])) {
+                    alert(`Illegal move!  Rook must be present for king to castle.`);
+                    return false;
+                }
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i][1] == from || moves[i][1] == rookIndex) {
+                        alert(`Illegal move!  Castling is not allowed if the king or rook has previously moved.`);
+                        return false;
+                    }
+                }
+                if (to > from) {
+                    path.push(from + 1, from + 2);
+                } else {
+                    path.push(from - 1, from - 2, from - 3);
+                }
+                // TODO: may not castle if king moves through a threatened square.
+            } else {
+                const moves = [7, 8, 9, -1, 1, -9, -8, -7].map(x => from + x);
+                if (!moves.includes(to)) {
+                    alert(`Illegal move!  King may move one square in any direction, or two squares when castling.`);
+                    return false;
+                }
             }
         }
         if (rook.includes(piece)) {
@@ -161,7 +182,6 @@
             }
         }
         if (pawn.includes(piece)) {
-            const side = white.includes(piece);
             const direction = (side) ? 1 : -1;
             const fromRow = Math.floor(from / 8) + 1;
             const diagonals = [7, 9].map(x => from + (direction * x));
