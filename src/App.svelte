@@ -161,10 +161,42 @@
             }
         }
         if (pawn.includes(piece)) {
-            // TODO: first move
-            // TODO: diagonal capture
+            const side = white.includes(piece);
+            const direction = (side) ? 1 : -1;
+            const capture = (game[to] != ' ' && white.includes(game[to]) != side);
+            const fromRow = Math.floor(from / 8) + 1;
+            const diagonals = [7, 9].map(x => from + (direction * x));
+
             // TODO: en passant
             // TODO: promotion
+
+            if (to == from + (direction * 8)) {
+                // Single move forward.
+                if (capture) {
+                    alert(`Illegal move!  Pawn may only capture on the diagonal.`);
+                    return false;
+                }
+            } else if (to == from + (direction * 16)) {
+                // Double move forward.
+                if (fromRow != ((side) ? 2 : 7)) {
+                    alert(`Illegal move!  Pawn may not advance two squares, except as its initial move.`);
+                    return false;
+                }
+                if (capture) {
+                    alert(`Illegal move!  Pawn may only capture on the diagonal.`);
+                    return false;
+                }
+                path.push(from + (direction * 8));
+            } else if (diagonals.includes(to)) {
+                if (!capture) {
+                    alert(`Illegal move!  Pawn may only move diagonally to capture.`);
+                    return false;
+                }
+            } else {
+                // Some bullshit
+                alert(`Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`);
+                return false;
+            }
         }
         if (path.length > 0) {
             // Check for obstructions
