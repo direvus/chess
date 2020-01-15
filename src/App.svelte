@@ -52,7 +52,7 @@
             let target = game[to];
             game[from] = ' ';
             game[to] = piece;
-            moves = [...moves, [from, to]];
+            moves = [...moves, [piece, from, to]];
             turn += 1;
 
             // TODO: en passant
@@ -163,12 +163,9 @@
         if (pawn.includes(piece)) {
             const side = white.includes(piece);
             const direction = (side) ? 1 : -1;
-            const capture = (game[to] != ' ' && white.includes(game[to]) != side);
             const fromRow = Math.floor(from / 8) + 1;
             const diagonals = [7, 9].map(x => from + (direction * x));
-
-            // TODO: en passant
-            // TODO: promotion
+            let capture = (game[to] != ' ' && white.includes(game[to]) != side);
 
             if (to == from + (direction * 8)) {
                 // Single move forward.
@@ -188,6 +185,16 @@
                 }
                 path.push(from + (direction * 8));
             } else if (diagonals.includes(to)) {
+                /*
+                 * En passant: if the last piece to move was an enemy pawn, and
+                 * it used a double-move, then this piece may capture by moving
+                 * diagonally into the space the enemy pawn would have occupied,
+                 * had it used a single move.
+                 */
+                const lastMove = moves[moves.length - 1];
+                if (pawn.includes(lastMove[0]) && Math.abs(lastMove[1] - lastMove[2]) == 16 && to == lastMove[2] + (direction * 8)) {
+                    capture = true;
+                }
                 if (!capture) {
                     alert(`Illegal move!  Pawn may only move diagonally to capture.`);
                     return false;
