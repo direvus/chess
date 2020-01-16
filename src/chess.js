@@ -161,6 +161,7 @@ export class Game {
 
         let path = [];
         let result = this.copyBoard();
+        const check = this.copyBoard();
 
         if (target != ' ' && side == WHITES.includes(target)) {
             alert(`Illegal move!  Square ${to.label} is occupied by your own piece.`);
@@ -190,8 +191,16 @@ export class Game {
                 } else {
                     [1, 2, 3].forEach(x => path.push(new Ref(from.row, from.col - x)));
                 }
-                // TODO: may not castle if king moves through a threatened square.
                 const rookTo = from.add(0, (h > 0) ? 1 : -1);
+
+                from.setCell(check, ' ');
+                rookTo.setCell(check, piece);
+                let threat = findCheck(check, side);
+                if (threat) {
+                    alert(`Illegal move!  This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`);
+                    return null;
+                }
+
                 rookRef.setCell(result, ' ');
                 rookTo.setCell(result, rook);
             } else {
