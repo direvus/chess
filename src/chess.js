@@ -397,7 +397,23 @@ export function findCheck(board, side) {
         }
     }
 
-    // TODO: Enemy king
+    vectors = [
+        [ 0,  1],
+        [ 1,  1],
+        [ 1,  0],
+        [ 1, -1],
+        [ 0, -1],
+        [-1, -1],
+        [-1,  0],
+        [-1,  1]];
+    for (let i = 0; i < vectors.length; i++) {
+        const v = vectors[i]
+        const ref = target.add(v[0], v[1]);
+        const piece = ref.getCell(board);
+        if (KINGS.includes(piece) && WHITES.includes(piece) != side) {
+            return ref;
+        }
+    }
 
     const len = board.length;
     const row = board[target.row];
@@ -426,7 +442,24 @@ export function findCheck(board, side) {
                 }
             }
         }
-        // TODO: Diagonal
+        let h = step;
+        let v = step;
+        for (let j = 0; j < 2; j++) {
+            let ref = target.add(v, h);
+            let piece = ref.getCell(board);
+            while (piece) {
+                if (piece != ' ') {
+                    if (WHITES.includes(piece) == side) {
+                        break;
+                    } else if ((BISHOPS + QUEENS).includes(piece)) {
+                        return ref;
+                    }
+                }
+                ref = ref.add(v, h);
+                piece = ref.getCell(board);
+            }
+            v = -step;
+        }
         step = -step;
     }
 
