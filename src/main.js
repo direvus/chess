@@ -1,11 +1,10 @@
 import App from './App.svelte';
+import { Game } from './chess.js';
 
 const app = new App({
   target: document.body,
   props: {
-    turn: 0,
-    moves: [],
-    game: Array.from('♖♘♗♕♔♗♘♖♙♙♙♙♙♙♙♙                                ♟♟♟♟♟♟♟♟♜♞♝♛♚♝♞♜')
+    game: new Game()
   }
 });
 
