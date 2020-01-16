@@ -22,6 +22,10 @@ const BISHOPS = WHITE_BISHOP + BLACK_BISHOP;
 const QUEENS = WHITE_QUEEN + BLACK_QUEEN;
 const KINGS = WHITE_KING + BLACK_KING;
 
+const PROMOTIONS = [
+    WHITE_QUEEN + WHITE_KNIGHT + WHITE_ROOK + WHITE_BISHOP,
+    BLACK_QUEEN + BLACK_KNIGHT + BLACK_ROOK + BLACK_BISHOP];
+
 export class Ref {
     constructor(row, col) {
         this.row = row;
@@ -131,7 +135,26 @@ export class Game {
         return copy;
     }
 
-    move(from, to) {
+    move(from, to, promotion=0) {
+        /*
+         * Execute a move in this game, if is it legal.
+         *
+         * We call validateMove() to do all the heavy lifting of finding out
+         * whether the move is legal, and determining the new board state that
+         * results from the move.
+         *
+         * If successful, we update the board, increment the turn counter, and
+         * append the details of the move and new board state to the move
+         * listing.
+         *
+         * Arguments:
+         * from: a Ref to the departing square
+         * to: a Ref to the arrival square
+         * promotion: 0=queen, 1=knight, 2=rook, 3=bishop
+         *
+         * Returns:
+         * True if the move succeeded, false if it was rejected.
+         */
         let newBoard = this.validateMove(from, to);
         if (newBoard) {
             const piece = this.get(from);
@@ -145,12 +168,17 @@ export class Game {
         }
     }
 
-    validateMove(from, to) {
+    validateMove(from, to, promotion=0) {
         /*
          * Assess whether the given move is legal.
          *
-         * If the move is legal, return the board state that would result after
-         * the move is complete.  Otherwise, return null.
+         * Arguments:
+         * from: a Ref to the departing square
+         * to: a Ref to the arrival square
+         * promotion: 0=queen, 1=knight, 2=rook, 3=bishop
+         *
+         * Returns:
+         * The resulting board state if the move succeeded, null otherwise.
          */
         const piece = this.get(from);
         const target = this.get(to);
@@ -325,7 +353,10 @@ export class Game {
                 alert(`Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`);
                 return null;
             }
-            // TODO: promotion
+
+            if (to.row == ((side) ? 0 : 7)) {
+                to.setCell(result, PROMOTIONS[(side) ? 0 : 1][promotion]);
+            }
         }
         if (path.length > 0) {
             // Check for obstructions
