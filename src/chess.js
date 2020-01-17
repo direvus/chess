@@ -135,6 +135,18 @@ export class Game {
         return copy;
     }
 
+    selectTurn(turn) {
+        /*
+         * Set the game state as it was at the end of the given turn.
+         */
+        const index = turn - 1;
+        const next = turn + 1;
+        if (index >= 0 && index < this.moves.length && next != this.turn) {
+            this.turn = next;
+            this.board = this.moves[index][3];
+        }
+    }
+
     move(from, to, promotion=0) {
         /*
          * Execute a move in this game, if is it legal.
@@ -159,7 +171,12 @@ export class Game {
         if (newBoard) {
             const piece = this.get(from);
             this.board = newBoard;
-            this.moves = [...this.moves, [piece, from, to, this.board]];
+            /*
+             * In case we've backtracked, erase future moves before recording the
+             * new one.
+             */
+            const pastMoves = this.moves.slice(0, this.turn - 1);
+            this.moves = [...pastMoves, [piece, from, to, this.board]];
             this.turn += 1;
 
             return true;

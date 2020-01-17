@@ -11,6 +11,28 @@
         game = game;
         return move;
     }
+
+    function resetGame() {
+        game.initialise();
+        game = game;
+    }
+
+    function selectTurn(turn) {
+        game.selectTurn(turn);
+        game = game;
+    }
+
+    function goBack() {
+        if (game.turn > 2) {
+            selectTurn(game.turn - 2);
+        }
+    }
+
+    function goForward() {
+        if (game.turn < game.moves.length + 1) {
+            selectTurn(game.turn);
+        }
+    }
 </script>
 
 <main>
@@ -21,18 +43,27 @@
         <div class="five wide column">
             <div class="ui fluid vertical menu">
                 <div class="item">
+                    <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                </div>
+                <div class="item">
+                    <div class="ui two buttons">
+                        <div class="ui button" on:click={goBack}><i class="step backward icon"></i> Back</div>
+                        <div class="ui button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
+                    </div>
+                </div>
+                <div class="item">
                     <div class="ui two huge buttons">
-                        <div class="ui {(game.turn % 2 == 1) ? 'primary' : ''} button" title="White">{WHITE_PAWN}</div>
-                        <div class="ui {(game.turn % 2 == 0) ? 'primary' : ''} button" title="Black">{BLACK_PAWN}</div>
+                        <div class="ui {(game.turn % 2 == 1) ? 'primary' : ''} button" title="White"><big>{WHITE_PAWN}</big></div>
+                        <div class="ui {(game.turn % 2 == 0) ? 'primary' : ''} button" title="Black"><big>{BLACK_PAWN}</big></div>
                     </div>
                     <div class="ui fluid steps">
-                        <div class="step">Turn:&nbsp;<strong>{game.turn}</strong></div>
-                        <div class="active step">To play:&nbsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong></div>
+                        <div class="step">Turn&emsp;<strong>{game.turn}</strong></div>
+                        <div class="active step">To play&emsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong></div>
                     </div>
                 </div>
 
                 {#each game.moves as move, i}
-                <div class="item">
+                <a class="item {(game.turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
                     <div class="ui grid">
                         <div class="two wide column">
                             <span class="ui label {(i % 2) ? 'black' : ''}">{i+1}</span>
@@ -44,7 +75,7 @@
                             {move[1].label} <i class="long arrow alternate right icon"></i> {move[2].label}
                         </div>
                     </div>
-                </div>
+                </a>
                 {/each}
             </div>
         </div>
