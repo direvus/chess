@@ -1,6 +1,6 @@
 <script>
     import Grid from './Grid.svelte';
-    import { Ref } from './chess.js';
+    import { Ref, WHITE_PAWN, BLACK_PAWN } from './chess.js';
 
     export let game;
 
@@ -14,27 +14,42 @@
 </script>
 
 <main>
-    <Grid board={game.board} {doMove} />
+    <div class="ui grid">
+        <div class="eleven wide column">
+            <Grid board={game.board} {doMove} />
+        </div>
+        <div class="five wide column">
+            <div class="ui fluid vertical menu">
+                <div class="item">
+                    <div class="ui two huge buttons">
+                        <div class="ui {(game.turn % 2 == 1) ? 'primary' : ''} button" title="White">{WHITE_PAWN}</div>
+                        <div class="ui {(game.turn % 2 == 0) ? 'primary' : ''} button" title="Black">{BLACK_PAWN}</div>
+                    </div>
+                    <div class="ui fluid steps">
+                        <div class="step">Turn:&nbsp;<strong>{game.turn}</strong></div>
+                        <div class="active step">To play:&nbsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong></div>
+                    </div>
+                </div>
+
+                {#each game.moves as move, i}
+                <div class="item">
+                    <div class="ui grid">
+                        <div class="two wide column">
+                            <span class="ui label {(i % 2) ? 'black' : ''}">{i+1}</span>
+                        </div>
+                        <div class="two wide column">
+                            <span class="text large">{move[0]}</span>
+                        </div>
+                        <div class="eight wide column">
+                            {move[1].label} <i class="long arrow alternate right icon"></i> {move[2].label}
+                        </div>
+                    </div>
+                </div>
+                {/each}
+            </div>
+        </div>
+    </div>
 </main>
 
 <style>
-    main {
-        text-align: center;
-        padding: 1em;
-        max-width: 240px;
-        margin: 0 auto;
-    }
-
-    h1 {
-        color: #ff3e00;
-        text-transform: uppercase;
-        font-size: 4em;
-        font-weight: 100;
-    }
-
-    @media (min-width: 640px) {
-        main {
-            max-width: none;
-        }
-    }
 </style>

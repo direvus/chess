@@ -11,7 +11,7 @@
         vertical-align: middle;
         width: 4ex;
         height: 4ex;
-        font-size: 400%;
+        font-size: 300%;
         border: 4px solid transparent;
     }
     td.selected {
