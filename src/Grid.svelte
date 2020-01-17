@@ -1,7 +1,9 @@
 <script>
     import Cell from './Cell.svelte';
+    import { WHITES } from './chess.js';
 
     export let board;
+    export let side;
     export let doMove;
 
     let col = -1;
@@ -19,7 +21,7 @@
                 row = -1;
                 col = -1;
             }
-        } else if (board[r][c] != ' ') {
+        } else if (board[r][c] != ' ' && WHITES.includes(board[r][c]) == side) {
             row = r;
             col = c;
         }

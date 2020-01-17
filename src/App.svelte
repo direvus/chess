@@ -16,7 +16,7 @@
 <main>
     <div class="ui grid">
         <div class="eleven wide column">
-            <Grid board={game.board} {doMove} />
+            <Grid board={game.board} side={game.turn % 2 != 0} {doMove} />
         </div>
         <div class="five wide column">
             <div class="ui fluid vertical menu">
@@ -38,7 +38,7 @@
                             <span class="ui label {(i % 2) ? 'black' : ''}">{i+1}</span>
                         </div>
                         <div class="two wide column">
-                            <span class="text large">{move[0]}</span>
+                            <span class="text"><big>{move[0]}</big></span>
                         </div>
                         <div class="eight wide column">
                             {move[1].label} <i class="long arrow alternate right icon"></i> {move[2].label}
