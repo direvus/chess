@@ -63,7 +63,7 @@
                 </div>
 
                 {#each game.moves as move, i}
-                <a class="item {(game.turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
+                <a href="#self" class="item {(game.turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
                     <div class="ui grid">
                         <div class="two wide column">
                             <span class="ui label {(i % 2) ? 'black' : ''}">{i+1}</span>
