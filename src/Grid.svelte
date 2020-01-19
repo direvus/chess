@@ -4,13 +4,17 @@
 
     export let board;
     export let side;
+    export let rotation = false;
     export let doMove;
+
+    const ROW_LABELS = ['8', '7', '6', '5', '4', '3', '2', '1'];
+    const COL_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     let col = -1;
     let row = -1;
 
-    const rows = [8, 7, 6, 5, 4, 3, 2, 1];
-    const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    let rows = [0, 1, 2, 3, 4, 5, 6, 7];
+    let cols = [0, 1, 2, 3, 4, 5, 6, 7];
 
     function clickCell(r, c) {
         if (row == r && col == c) {
@@ -26,38 +30,44 @@
             col = c;
         }
     }
+
+    function rotate() {
+        rows = rows.reverse();
+        cols = cols.reverse();
+        rotation = !rotation;
+    }
 </script>
 
 <table>
     <thead>
         <tr>
-            <th></th>
-            {#each cols as c, j}
-            <th class={col == j ? 'selected' : ''}>{c}</th>
+            <th><div class="ui toggle icon button {(rotation) ? 'active' : ''}" on:click={rotate} title="Rotate board view"><i class="sync alternate icon"></i></th>
+            {#each cols as c}
+            <th class={col == c ? 'selected' : ''}>{COL_LABELS[c]}</th>
             {/each}
             <th></th>
         </tr>
     </thead>
     <tbody>
-        {#each rows as r, i}
+        {#each rows as r}
         <tr>
-            <th class={row == i ? 'selected' : ''}>{r}</th>
-            {#each cols as c, j}
+            <th class={row == r ? 'selected' : ''}>{ROW_LABELS[r]}</th>
+            {#each cols as c}
             <Cell
-                value={board[i][j]}
-                on:click={() => clickCell(i, j)}
-                selected={col == j && row == i}
+                value={board[r][c]}
+                on:click={() => clickCell(r, c)}
+                selected={col == c && row == r}
                 />
             {/each}
-            <th class={row == i ? 'selected' : ''}>{r}</th>
+            <th class={row == r ? 'selected' : ''}>{ROW_LABELS[r]}</th>
         </tr>
         {/each}
     </tbody>
     <tfoot>
         <tr>
             <th></th>
-            {#each cols as c, j}
-            <th class={col == j ? 'selected' : ''}>{c}</th>
+            {#each cols as c}
+            <th class={col == c ? 'selected' : ''}>{COL_LABELS[c]}</th>
             {/each}
             <th></th>
         </tr>

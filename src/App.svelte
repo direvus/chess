@@ -3,6 +3,7 @@
     import { Ref, WHITE_PAWN, BLACK_PAWN } from './chess.js';
 
     export let game;
+    export let rotation;
 
     function doMove(fromCol, fromRow, toCol, toRow) {
         const from = new Ref(fromCol, fromRow);
@@ -33,17 +34,23 @@
             selectTurn(game.turn);
         }
     }
+
+    function rotateBoard() {
+        rotation = !rotation;
+    }
 </script>
 
 <main>
     <div class="ui grid">
         <div class="eleven wide column">
-            <Grid board={game.board} side={game.turn % 2 != 0} {doMove} />
+            <Grid board={game.board} side={game.turn % 2 != 0} {rotation} {doMove} />
         </div>
         <div class="five wide column">
             <div class="ui fluid vertical menu">
                 <div class="item">
-                    <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                    <div class="ui two buttons">
+                        <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                    </div>
                 </div>
                 <div class="item">
                     <div class="ui two buttons">
