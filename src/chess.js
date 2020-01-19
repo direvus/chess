@@ -143,7 +143,7 @@ export class Game {
         const next = turn + 1;
         if (index >= 0 && index < this.moves.length && next != this.turn) {
             this.turn = next;
-            this.board = this.moves[index][3];
+            this.board = this.moves[index][4];
         }
     }
 
@@ -167,7 +167,7 @@ export class Game {
          * Returns:
          * True if the move succeeded, false if it was rejected.
          */
-        let newBoard = this.validateMove(from, to);
+        let [newBoard, capture] = this.validateMove(from, to);
         if (newBoard) {
             const piece = this.get(from);
             this.board = newBoard;
@@ -176,7 +176,7 @@ export class Game {
              * new one.
              */
             const pastMoves = this.moves.slice(0, this.turn - 1);
-            this.moves = [...pastMoves, [piece, from, to, this.board]];
+            this.moves = [...pastMoves, [piece, from, to, capture, this.board]];
             this.turn += 1;
 
             return true;
@@ -195,7 +195,11 @@ export class Game {
          * promotion: 0=queen, 1=knight, 2=rook, 3=bishop
          *
          * Returns:
-         * The resulting board state if the move succeeded, null otherwise.
+         * If the move is legal, an Array containing:
+         *   - the resulting board state,
+         *   - the captured piece, if any, otherwise a space ' '.
+         *
+         * If the move is illegal, return null.
          */
         const piece = this.get(from);
         const target = this.get(to);
@@ -206,6 +210,7 @@ export class Game {
 
         let path = [];
         let result = this.copyBoard();
+        let capture = (target != ' ' && WHITES.includes(target) != side);
         const check = this.copyBoard();
 
         if (target != ' ' && side == WHITES.includes(target)) {
@@ -226,7 +231,7 @@ export class Game {
                     return null;
                 }
                 for (let i = 0; i < this.moves.length; i++) {
-                    if (this.moves[i][1].equals(from) || rookRef.getCell(this.moves[i][3]) != rook) {
+                    if (this.moves[i][1].equals(from) || rookRef.getCell(this.moves[i][4]) != rook) {
                         alert(`Illegal move!  Castling is not allowed if the king or rook has previously moved.`);
                         return null;
                     }
@@ -322,7 +327,6 @@ export class Game {
         }
         if (PAWNS.includes(piece)) {
             const step = (side) ? -1 : 1;
-            let capture = (target != ' ' && WHITES.includes(target) != side);
 
             if (h == 0 && v == step) {
                 // Single move forward.
@@ -358,6 +362,7 @@ export class Game {
                             PAWNS.includes(lastMove[0]) &&
                             lastH == 0 && Math.abs(lastV) == 2) {
                         capture = true;
+                        target = result.get(lastMove[2]);
                         lastMove[2].setCell(result, ' ');
                     }
                 }

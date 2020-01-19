@@ -112,10 +112,13 @@
                             <span class="ui label {(i % 2) ? 'black' : ''}">{i+1}</span>
                         </div>
                         <div class="two wide column">
-                            <span class="text"><big>{move[0]}</big></span>
+                            <span class="text center"><big>{move[0]}</big></span>
                         </div>
-                        <div class="eight wide column">
+                        <div class="six wide column">
                             {move[1].label} <i class="long arrow alternate right icon"></i> {move[2].label}
+                        </div>
+                        <div class="two wide column">
+                            <span class="text center"><big>{move[3]}</big></span>
                         </div>
                     </div>
                 </a>
