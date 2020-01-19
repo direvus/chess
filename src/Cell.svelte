@@ -13,6 +13,7 @@
         height: 4ex;
         font-size: 300%;
         border: 4px solid transparent;
+        transition: all .4s ease-out;
     }
     td.selected {
         border-color: black;
