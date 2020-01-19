@@ -8,6 +8,8 @@
     let cols = [0, 1, 2, 3, 4, 5, 6, 7];
     let rotation = false;
     let autorotate = false;
+    let exportPGN = '';
+    let showExport = false;
 
     function doMove(fromCol, fromRow, toCol, toRow) {
         const from = new Ref(fromCol, fromRow);
@@ -61,9 +63,27 @@
             cols = cols.reverse();
         }
     }
+
+    function exportGame() {
+        exportPGN = game.exportPGN();
+        window.$('.ui.modal').modal('show');
+    }
+
+    function hideExport() {
+        window.$('.ui.modal').modal('hide');
+    }
 </script>
 
 <main>
+    <div class="ui modal">
+        <i class="close icon"></i>
+        <div class="header">Game export</div>
+        <pre><code>{exportPGN}</code></pre>
+        <div class="actions">
+            <div class="ui primary button" on:click={hideExport}>Dismiss</div>
+        </div>
+    </div>
+
     <div class="ui grid">
         <div class="eleven wide column">
             <Grid
@@ -80,6 +100,7 @@
                 <div class="item">
                     <div class="ui two buttons">
                         <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                        <div class="ui button" on:click={exportGame}><i class="download icon"></i> Export PGN</div>
                     </div>
                 </div>
                 <div class="item">

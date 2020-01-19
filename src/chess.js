@@ -26,6 +26,20 @@ export const PROMOTIONS = [
     WHITE_QUEEN + WHITE_KNIGHT + WHITE_ROOK + WHITE_BISHOP,
     BLACK_QUEEN + BLACK_KNIGHT + BLACK_ROOK + BLACK_BISHOP];
 
+export const SAN_PIECES = {
+    "♙": "P",
+    "♟": "P",
+    "♖": "R",
+    "♜": "R",
+    "♗": "B",
+    "♝": "B",
+    "♘": "N",
+    "♞": "N",
+    "♕": "Q",
+    "♛": "Q",
+    "♔": "K",
+    "♚": "K"};
+
 export class Ref {
     constructor(row, col) {
         this.row = row;
@@ -110,7 +124,17 @@ export class Game {
             ['♖','♘','♗','♕','♔','♗','♘','♖'],
             ];
         this.moves = [];
+        this.tags = {};
         this.turn = 1;
+    }
+
+    copy() {
+        let result = new Game();
+        result.board = this.copyBoard();
+        result.moves = this.copyMoves();
+        result.tags = this.copyTags();
+        result.turn = this.turn;
+        return result;
     }
 
     get(ref) {
@@ -128,10 +152,22 @@ export class Game {
     }
 
     copyBoard() {
+        return copyBoard(this.board);
+    }
+
+    copyMoves() {
         let copy = [];
-        this.board.forEach(row => {
-            copy.push(row.slice());
+        this.moves.forEach(move => {
+            copy.push(move.slice());
         });
+        return copy;
+    }
+
+    copyTags() {
+        let copy = {};
+        for (k in this.tags) {
+            copy[k] = this.tags[k];
+        }
         return copy;
     }
 
@@ -143,7 +179,7 @@ export class Game {
         const next = turn + 1;
         if (index >= 0 && index < this.moves.length && next != this.turn) {
             this.turn = next;
-            this.board = this.moves[index][4];
+            this.board = copyBoard(this.moves[index][4]);
         }
     }
 
@@ -158,6 +194,8 @@ export class Game {
          * If successful, we update the board, increment the turn counter, and
          * append the details of the move and new board state to the move
          * listing.
+         *
+         * Otherwise, we raise the error message as an alert.
          *
          * Arguments:
          * from: a Ref to the departing square
@@ -181,6 +219,7 @@ export class Game {
 
             return true;
         } else {
+            alert(capture);
             return false;
         }
     }
@@ -199,7 +238,9 @@ export class Game {
          *   - the resulting board state,
          *   - the captured piece, if any, otherwise a space ' '.
          *
-         * If the move is illegal, return null.
+         * If the move is illegal, return an Array containing:
+         *   - null,
+         *   - a string message detailed why the move was rejected.
          */
         const piece = this.get(from);
         const target = this.get(to);
@@ -214,8 +255,7 @@ export class Game {
         const check = this.copyBoard();
 
         if (target != ' ' && side == WHITES.includes(target)) {
-            alert(`Illegal move!  Square ${to.label} is occupied by your own piece.`);
-            return null;
+            return [null, `Illegal move!  Square ${to.label} is occupied by your own piece.`];
         }
 
         from.setCell(result, ' ');
@@ -227,13 +267,11 @@ export class Game {
                 const rookRef = new Ref(to.row, (h > 0) ? 7 : 0);
                 const rook = this.get(rookRef);
                 if (rook != ROOKS[(side) ? 0 : 1]) {
-                    alert(`Illegal move!  Rook must be present for king to castle.`);
-                    return null;
+                    return [null, `Illegal move!  Rook must be present for king to castle.`];
                 }
                 for (let i = 0; i < this.moves.length; i++) {
                     if (this.moves[i][1].equals(from) || rookRef.getCell(this.moves[i][4]) != rook) {
-                        alert(`Illegal move!  Castling is not allowed if the king or rook has previously moved.`);
-                        return null;
+                        return [null, `Illegal move!  Castling is not allowed if the king or rook has previously moved.`];
                     }
                 }
                 if (h > 0) {
@@ -247,16 +285,14 @@ export class Game {
                 rookTo.setCell(check, piece);
                 let threat = findCheck(check, side);
                 if (threat) {
-                    alert(`Illegal move!  This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`);
-                    return null;
+                    return [null, `Illegal move!  This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`];
                 }
 
                 rookRef.setCell(result, ' ');
                 rookTo.setCell(result, rook);
             } else {
                 if (av > 1 || ah > 1) {
-                    alert(`Illegal move!  King may move one square in any direction, or two squares when castling.`);
-                    return null;
+                    return [null, `Illegal move!  King may move one square in any direction, or two squares when castling.`];
                 }
             }
         }
@@ -275,8 +311,7 @@ export class Game {
                 }
             } else {
                 // Some bullshit
-                alert(`Illegal move!  Rook may only move either horizontally or vertically.`);
-                return null;
+                return [null, `Illegal move!  Rook may only move either horizontally or vertically.`];
             }
         }
         if (BISHOPS.includes(piece)) {
@@ -288,8 +323,7 @@ export class Game {
                 }
             } else {
                 // Some bullshit
-                alert(`Illegal move!  Bishop may only move diagonally.`);
-                return null;
+                return [null, `Illegal move!  Bishop may only move diagonally.`];
             }
         }
         if (QUEENS.includes(piece)) {
@@ -315,14 +349,12 @@ export class Game {
                 }
             } else {
                 // Some bullshit
-                alert(`Illegal move!  Queen may only move horizontally, vertically or diagonally.`);
-                return null;
+                return [null, `Illegal move!  Queen may only move horizontally, vertically or diagonally.`];
             }
         }
         if (KNIGHTS.includes(piece)) {
             if (!(av == 2 && ah == 1) && !(av == 1 && ah == 2)) {
-                alert(`Illegal move!  Invalid target for knight.`);
-                return null;
+                return [null, `Illegal move!  Invalid target for knight.`];
             }
         }
         if (PAWNS.includes(piece)) {
@@ -331,18 +363,15 @@ export class Game {
             if (h == 0 && v == step) {
                 // Single move forward.
                 if (capture) {
-                    alert(`Illegal move!  Pawn may only capture on the diagonal.`);
-                    return null;
+                    return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
                 }
             } else if (h == 0 && v == (step * 2)) {
                 // Double move forward.
                 if (from.row != ((side) ? 6 : 1)) {
-                    alert(`Illegal move!  Pawn may not advance two squares, except as its initial move.`);
-                    return null;
+                    return [null, `Illegal move!  Pawn may not advance two squares, except as its initial move.`];
                 }
                 if (capture) {
-                    alert(`Illegal move!  Pawn may only capture on the diagonal.`);
-                    return null;
+                    return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
                 }
                 path.push(new Ref(from.row + step, from.col));
             } else if (ah == 1 && v == step) {
@@ -367,13 +396,11 @@ export class Game {
                     }
                 }
                 if (!capture) {
-                    alert(`Illegal move!  Pawn may only move diagonally to capture.`);
-                    return null;
+                    return [null, `Illegal move!  Pawn may only move diagonally to capture.`];
                 }
             } else {
                 // Some bullshit
-                alert(`Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`);
-                return null;
+                return [null, `Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`];
             }
 
             if (to.row == ((side) ? 0 : 7)) {
@@ -384,20 +411,137 @@ export class Game {
             // Check for obstructions
             for (let i = 0; i < path.length; i++) {
                 if (!this.isEmpty(path[i])) {
-                    alert(`Illegal move!  Movement is blocked by another piece at ${path[i].label}.`);
-                    return null;
+                    return [null, `Illegal move!  Movement is blocked by another piece at ${path[i].label}.`];
                 }
             }
         }
         // Does this move place the player's king in check?
         let threat = findCheck(result, side);
         if (threat) {
-            alert(`Illegal move!  This move would place the king in check from ${threat.getCell(result)} at ${threat.label}.`);
-            return null;
+            return [null, `Illegal move!  This move would place the king in check from ${threat.getCell(result)} at ${threat.label}.`];
         }
 
+        return [result, target];
+    }
+
+    getMoveSAN(index) {
+        /*
+         * Return the move at 'index' in Standard Algebraic Notation.
+         */
+        let result = '';
+        const [piece, from, to, capture, board] = this.moves[index];
+        if (KINGS.includes(piece) && Math.abs(to.col - from.col) == 2) {
+            // Special case for castling.
+            if (to.col == 2) {
+                return 'O-O-O';
+            } else if (to.col == 6) {
+                return 'O-O';
+            } else {
+                console.log("ERROR: something has gone terribly wrong; the king has moved two squares, but landed somewhere other than files 'c' or  'g'.");
+            }
+        }
+        if (!PAWNS.includes(piece)) {
+            result += SAN_PIECES[piece];
+            // Could other pieces of the same type have moved here?
+            if (index > 0) {
+                const prev = this.copy();
+                prev.selectTurn(index);
+                const others = findPiece(prev.board, piece).filter(
+                    x => !x.equals(from) && prev.validateMove(x, to)[0]
+                );
+                if (others.length) {
+                    let file = true;
+                    let rank = true;
+                    for (let i = 0; i < others.length; i++) {
+                        if (others[i].col == from.col) {
+                            file = false;
+                        }
+                        if (others[i].row == from.row) {
+                            rank = false;
+                        }
+                    }
+                    if (file) {
+                        result += from.file;
+                    } else if (rank) {
+                        result += from.rank;
+                    } else {
+                        result += from.label;
+                    }
+                }
+            }
+        }
+
+        if (capture != ' ') {
+            if (PAWNS.includes(piece)) {
+                result += from.file;
+            }
+            result += 'x';
+        }
+
+        result += to.label;
+
+        // Promotion?
+        const finalPiece = to.getCell(board);
+        if (piece != finalPiece) {
+            result += '=' + SAN_PIECES[finalPiece];
+        }
+
+        // TODO: checking indicator
         return result;
     }
+
+    exportPGN() {
+        let result = '';
+        for (const k in this.tags) {
+            const v = writeTagValuePGN(this.tags[k]);
+            result += `[${k} ${v}]` + '\n';
+        }
+        result += '\n';
+        let line = '';
+        for (let i = 0; i < this.moves.length; i++) {
+            if (i % 2 == 0) {
+                line += (Math.floor(i / 2) + 1) + '. ';
+            }
+            const san = this.getMoveSAN(i);
+            if (line.length + san.length < 79) {
+                line += san + ' ';
+            } else {
+                result += line + '\n';
+                line = san + ' ';
+            }
+        }
+        if (line.length) {
+            result += line;
+        }
+        return result;
+    }
+}
+
+export function copyBoard(board) {
+    let copy = [];
+    board.forEach(row => {
+        copy.push(row.slice());
+    });
+    return copy;
+}
+
+export function findPiece(board, piece) {
+    /*
+     * Find all instances of a piece on the board.
+     *
+     * Returns an Array of Refs to all of the cells on the board that contain
+     * the given piece, in left-to-right, top-to-bottom order.
+     */
+    const result = [];
+    for (let r = 0; r < board.length; r++) {
+        const row = board[r];
+        for (let c = 0; c < row.length; c++) {
+            if (row[c] == piece) {
+                result.push(new Ref(r, c));
+            }
+        }
+    }
+    return result;
 }
 
 export function findCheck(board, side) {
@@ -413,19 +557,12 @@ export function findCheck(board, side) {
      * null otherwise.
      */
     const piece = KINGS[(side) ? 0 : 1];
-    let target = null;
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            if (board[r][c] == piece) {
-                target = new Ref(r, c);
-            }
-        }
-    }
-
-    if (target == null) {
+    const refs = findPiece(board, piece);
+    if (refs.length == 0) {
         console.log(`Error: ${piece} not found when testing for check.`);
         return false;
     }
+    const target = refs[0];
 
     // Knights
     let vectors = [
@@ -526,4 +663,28 @@ export function findCheck(board, side) {
     }
 
     return null;
+}
+
+export function writeTagValuePGN(value) {
+    /*
+     * Return the given tag value for use in PGN.
+     *
+     * The given string is escaped and quoted according to PGN string token
+     * rules, with the exception that Unicode characters are permitted (because
+     * it's the year 2020, and refusing to encode non-ASCII characters is
+     * ridiculous).  Non-printing characters and tabs from 'value' are omitted
+     * from the result.
+     */
+    let result = '"';
+    for (let i = 0; i < value.length; i++) {
+        const ch = value[i];
+        if (ch.charCodeAt(0) < 32) {
+            continue;
+        }
+        if (ch == "\\" || ch == '"') {
+            result += "\\";
+        }
+        result += ch;
+    }
+    return result + '"';
 }
