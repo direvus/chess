@@ -4,17 +4,17 @@
 
     export let board;
     export let side;
-    export let rotation = false;
+    export let rows;
+    export let cols;
+    export let rotation;
     export let doMove;
+    export let rotateBoard;
 
     const ROW_LABELS = ['8', '7', '6', '5', '4', '3', '2', '1'];
     const COL_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     let col = -1;
     let row = -1;
-
-    let rows = [0, 1, 2, 3, 4, 5, 6, 7];
-    let cols = [0, 1, 2, 3, 4, 5, 6, 7];
 
     function clickCell(r, c) {
         if (row == r && col == c) {
@@ -31,17 +31,12 @@
         }
     }
 
-    function rotate() {
-        rows = rows.reverse();
-        cols = cols.reverse();
-        rotation = !rotation;
-    }
 </script>
 
 <table>
     <thead>
         <tr>
-            <th><div class="ui toggle icon button {(rotation) ? 'active' : ''}" on:click={rotate} title="Rotate board view"><i class="sync alternate icon"></i></th>
+            <th><div class="ui toggle icon button {(rotation) ? 'active' : ''}" on:click={rotateBoard} title="Rotate board view"><i class="sync alternate icon"></i></th>
             {#each cols as c}
             <th class={col == c ? 'selected' : ''}>{COL_LABELS[c]}</th>
             {/each}
