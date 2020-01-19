@@ -40,6 +40,13 @@ export const SAN_PIECES = {
     "♔": "K",
     "♚": "K"};
 
+export const DEAD_POSITIONS = [
+    "♔♚",
+    "♔♗♚",
+    "♔♚♝",
+    "♔♘♚",
+    "♔♚♞"];
+
 export class Ref {
     constructor(row, col) {
         this.row = row;
@@ -56,6 +63,21 @@ export class Ref {
 
     get label() {
         return this.file + this.rank;
+    }
+
+    get colour() {
+        /*
+         * Return the colour of the square.
+         *
+         * The white squares are odd columns on odd rows, and even columns on
+         * even rows.  The black squares are odd columns on even rows, and even
+         * columns on odd rows.
+         *
+         * Returns:
+         * false: black square
+         * true: white square
+         */
+        return (this.col % 2) == (this.row % 2);
     }
 
     toString() {
@@ -126,15 +148,17 @@ export class Game {
         this.moves = [];
         this.tags = {};
         this.turn = 1;
+        this.result = null;
     }
 
     copy() {
-        let result = new Game();
-        result.board = this.copyBoard();
-        result.moves = this.copyMoves();
-        result.tags = this.copyTags();
-        result.turn = this.turn;
-        return result;
+        let copy = new Game();
+        copy.board = this.copyBoard();
+        copy.moves = this.copyMoves();
+        copy.tags = this.copyTags();
+        copy.turn = this.turn;
+        copy.result = this.result;
+        return copy;
     }
 
     get(ref) {
@@ -180,6 +204,7 @@ export class Game {
         if (index >= 0 && index < this.moves.length && next != this.turn) {
             this.turn = next;
             this.board = copyBoard(this.moves[index][4]);
+            this.result = this.getResult();
         }
     }
 
@@ -424,6 +449,48 @@ export class Game {
         return [result, target];
     }
 
+    getResult() {
+        /*
+         * Return the outcome of the game, as at the current board state.
+         *
+         * Returns:
+         * - null: no result has been determined.
+         * - 0: black player has won.
+         * - 1: white player has won.
+         * - 0.5: a draw.
+         *
+         * Note that this function only returns game results that can be
+         * determined automatically; it does not account for player
+         * resignations, agreed draws, or draws that must be claimed by a
+         * player.
+         *
+         * In particular, this function will return a null (no result) unless
+         * one of the following conditions are met:
+         * - the player to move is in checkmate, in which case their opponent
+         *   wins.
+         * - the player to move is not in check, but has no legal move
+         *   (stalemate), in which case the game is an automatic draw.
+         * - the remaining pieces on the board cannot give rise to a checkmate,
+         *   in which case the game is an automatic draw.
+         */
+
+        // TODO: Checkmate
+        // TODO: Stalemate
+        const pieces = getPieces(this.board).join('');
+        if (DEAD_POSITIONS.includes(pieces)) {
+            return 0.5;
+        }
+        if (pieces == "♔♗♚♝") {
+            // Only a dead position if both bishops are on the same colour.
+            const bishop1 = findPiece(this.board, WHITE_BISHOP);
+            const bishop2 = findPiece(this.board, BLACK_BISHOP);
+            if (bishop1.colour == bishop2.colour) {
+                return 0.5;
+            }
+        }
+        return null;
+    }
+
     getMoveSAN(index) {
         /*
          * Return the move at 'index' in Standard Algebraic Notation.
@@ -497,22 +564,36 @@ export class Game {
             result += `[${k} ${v}]` + '\n';
         }
         result += '\n';
-        let line = '';
+        let length = 0;
+        let token = '';
         for (let i = 0; i < this.moves.length; i++) {
             if (i % 2 == 0) {
-                line += (Math.floor(i / 2) + 1) + '. ';
+                token += (Math.floor(i / 2) + 1) + '.';
             }
-            const san = this.getMoveSAN(i);
-            if (line.length + san.length < 79) {
-                line += san + ' ';
+            token += this.getMoveSAN(i);
+            if (length + token.length < 78) {
+                result += ' ' + token;
+                length += 1 + token.length;
             } else {
-                result += line + '\n';
-                line = san + ' ';
+                result += '\n' + token;
+                length = token.length;
             }
         }
-        if (line.length) {
-            result += line;
+
+        let end = '*';
+        if (this.result == 0) {
+            end = '0-1';
+        } else if (this.result == 1) {
+            end = '1-0';
+        } else if (this.result > 0 && this.result < 1) {
+            end = '1/2-1/2';
         }
+        if (length + end.length < 78) {
+            result += ' ' + end;
+        } else {
+            result += '\n' + end;
+        }
+        result += '\n'
         return result;
     }
 }
@@ -542,6 +623,30 @@ export function findPiece(board, piece) {
         }
     }
     return result;
+}
+
+export function getPieces(board) {
+    /*
+     * Return all pieces remaining on the board.
+     *
+     * Returns:
+     * An Array containing all of the pieces present on the given board, in
+     * lexicographical order.
+     *
+     * For example, if white has its king and two knights, and black has its
+     * king, a bishop and a pawn, this function will return:
+     *     ["♔", "♘", "♘", "♚", "♝", "♟"]
+     */
+    const result = [];
+    for (let r = 0; r < board.length; r++) {
+        const row = board[r];
+        for (let c = 0; c < row.length; c++) {
+            if (row[c] != ' ') {
+                result.push(row[c]);
+            }
+        }
+    }
+    return result.sort();
 }
 
 export function findCheck(board, side) {
