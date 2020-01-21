@@ -122,7 +122,17 @@
                     </div>
                     <div class="ui fluid steps">
                         <div class="step">Turn&emsp;<strong>{game.turn}</strong></div>
-                        <div class="active step">To play&emsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong></div>
+                        <div class="active step">
+                            {#if game.result == 0}
+                            Game over&emsp;<strong>Black wins</strong>
+                            {:else if game.result == 1}
+                            Game over&emsp<strong>White wins</strong>
+                            {:else if game.result == 0.5}
+                            Game over&emsp<strong>Draw</strong>
+                            {:else}
+                            To play&emsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong>
+                            {/if}
+                        </div>
                     </div>
                 </div>
 

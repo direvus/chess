@@ -245,6 +245,7 @@ export class Game {
             const pastMoves = this.moves.slice(0, this.turn - 1);
             this.moves = [...pastMoves, [piece, from, to, capture, this.board]];
             this.turn += 1;
+            this.result = this.getResult();
 
             return true;
         } else {
@@ -277,8 +278,10 @@ export class Game {
          * - the remaining pieces on the board cannot give rise to a checkmate,
          *   in which case the game is an automatic draw.
          */
-
-        // TODO: Checkmate
+        const side = (this.turn % 2 != 0);
+        if (inCheckmate(this.board, side, this.moves.slice(0, this.turn))) {
+            return (side) ? 0 : 1;
+        }
         // TODO: Stalemate
         const pieces = getPieces(this.board).join('');
         if (DEAD_POSITIONS.includes(pieces)) {
@@ -612,7 +615,7 @@ export function findCheck(board, side) {
             let ref = target.add(v, h);
             let piece = ref.getCell(board);
             while (piece) {
-                if (piece == ' ') {
+                if (piece != ' ') {
                     if (diagonals.includes(piece)) {
                         return ref;
                     } else {
@@ -651,7 +654,7 @@ export function validateMove(board, moves, from, to, promotion=0) {
      *   - a string message detailed why the move was rejected.
      */
     const piece = from.getCell(board);
-    const side = WHITES.includes(piece);
+    const side = getSide(piece);
     const [v, h] = to.diff(from);
     const av = Math.abs(v);
     const ah = Math.abs(h);
