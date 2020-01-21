@@ -189,7 +189,7 @@ export class Game {
 
     copyTags() {
         let copy = {};
-        for (k in this.tags) {
+        for (let k in this.tags) {
             copy[k] = this.tags[k];
         }
         return copy;
@@ -230,7 +230,7 @@ export class Game {
          * Returns:
          * True if the move succeeded, false if it was rejected.
          */
-        let [newBoard, capture] = this.validateMove(from, to);
+        let [newBoard, capture] = this.validateMove(from, to, promotion);
         if (newBoard) {
             const piece = this.get(from);
             this.board = newBoard;
@@ -268,7 +268,6 @@ export class Game {
          *   - a string message detailed why the move was rejected.
          */
         const piece = this.get(from);
-        const target = this.get(to);
         const side = WHITES.includes(piece);
         const [v, h] = to.diff(from);
         const av = Math.abs(v);
@@ -276,6 +275,7 @@ export class Game {
 
         let path = [];
         let result = this.copyBoard();
+        let target = this.get(to);
         let capture = (target != ' ' && WHITES.includes(target) != side);
         const check = this.copyBoard();
 
@@ -352,8 +352,6 @@ export class Game {
             }
         }
         if (QUEENS.includes(piece)) {
-            const diff = to - from;
-
             if (v == 0) {
                 // Horizontal movement
                 const step = (h < 0) ? -1 : 1;
@@ -497,6 +495,8 @@ export class Game {
          */
         let result = '';
         const [piece, from, to, capture, board] = this.moves[index];
+        const side = ((index + 1) % 2);
+
         if (KINGS.includes(piece) && Math.abs(to.col - from.col) == 2) {
             // Special case for castling.
             if (to.col == 2) {
