@@ -495,7 +495,7 @@ export class Game {
          */
         let result = '';
         const [piece, from, to, capture, board] = this.moves[index];
-        const side = ((index + 1) % 2);
+        const side = ((index + 1) % 2 != 0);
 
         if (KINGS.includes(piece) && Math.abs(to.col - from.col) == 2) {
             // Special case for castling.
@@ -553,7 +553,12 @@ export class Game {
             result += '=' + SAN_PIECES[finalPiece];
         }
 
-        // TODO: checking indicator
+        // Checking indicator
+        if (findCheck(board, !side)) {
+            let marker = '+';
+            // TODO: checkmate indicator
+            result += marker;
+        }
         return result;
     }
 
@@ -578,6 +583,7 @@ export class Game {
                 result += '\n' + token;
                 length = token.length;
             }
+            token = '';
         }
 
         let end = '*';
