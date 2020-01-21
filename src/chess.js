@@ -102,6 +102,10 @@ export class Ref {
         return old;
     }
 
+    isEmpty(board) {
+        return (this.getCell(board) == ' ');
+    }
+
     equals(ref) {
         return (this.row == ref.row && this.col == ref.col);
     }
@@ -230,7 +234,7 @@ export class Game {
          * Returns:
          * True if the move succeeded, false if it was rejected.
          */
-        let [newBoard, capture] = this.validateMove(from, to, promotion);
+        let [newBoard, capture] = validateMove(this.board, this.moves, from, to, promotion);
         if (newBoard) {
             const piece = this.get(from);
             this.board = newBoard;
@@ -247,204 +251,6 @@ export class Game {
             alert(capture);
             return false;
         }
-    }
-
-    validateMove(from, to, promotion=0) {
-        /*
-         * Assess whether the given move is legal.
-         *
-         * Arguments:
-         * from: a Ref to the departing square
-         * to: a Ref to the arrival square
-         * promotion: 0=queen, 1=knight, 2=rook, 3=bishop
-         *
-         * Returns:
-         * If the move is legal, an Array containing:
-         *   - the resulting board state,
-         *   - the captured piece, if any, otherwise a space ' '.
-         *
-         * If the move is illegal, return an Array containing:
-         *   - null,
-         *   - a string message detailed why the move was rejected.
-         */
-        const piece = this.get(from);
-        const side = WHITES.includes(piece);
-        const [v, h] = to.diff(from);
-        const av = Math.abs(v);
-        const ah = Math.abs(h);
-
-        let path = [];
-        let result = this.copyBoard();
-        let target = this.get(to);
-        let capture = (target != ' ' && WHITES.includes(target) != side);
-        const check = this.copyBoard();
-
-        if (target != ' ' && side == WHITES.includes(target)) {
-            return [null, `Illegal move!  Square ${to.label} is occupied by your own piece.`];
-        }
-
-        from.setCell(result, ' ');
-        to.setCell(result, piece);
-
-        if (KINGS.includes(piece)) {
-            if (from.col == 4 && from.row == ((side) ? 7 : 0) && ah == 2 && v == 0) { 
-                // Castling
-                const rookRef = new Ref(to.row, (h > 0) ? 7 : 0);
-                const rook = this.get(rookRef);
-                if (rook != ROOKS[(side) ? 0 : 1]) {
-                    return [null, `Illegal move!  Rook must be present for king to castle.`];
-                }
-                for (let i = 0; i < this.moves.length; i++) {
-                    if (this.moves[i][1].equals(from) || rookRef.getCell(this.moves[i][4]) != rook) {
-                        return [null, `Illegal move!  Castling is not allowed if the king or rook has previously moved.`];
-                    }
-                }
-                if (h > 0) {
-                    [1, 2].forEach(x => path.push(new Ref(from.row, from.col + x)));
-                } else {
-                    [1, 2, 3].forEach(x => path.push(new Ref(from.row, from.col - x)));
-                }
-                const rookTo = from.add(0, (h > 0) ? 1 : -1);
-
-                from.setCell(check, ' ');
-                rookTo.setCell(check, piece);
-                let threat = findCheck(check, side);
-                if (threat) {
-                    return [null, `Illegal move!  This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`];
-                }
-
-                rookRef.setCell(result, ' ');
-                rookTo.setCell(result, rook);
-            } else {
-                if (av > 1 || ah > 1) {
-                    return [null, `Illegal move!  King may move one square in any direction, or two squares when castling.`];
-                }
-            }
-        }
-        if (ROOKS.includes(piece)) {
-            if (v == 0) {
-                // Horizontal movement
-                const step = (h < 0) ? -1 : 1;
-                for (let i = from.col + step; i != to.col; i += step) {
-                    path.push(new Ref(from.row, i));
-                }
-            } else if (h == 0) {
-                // Vertical movement
-                const step = (v < 0) ? -1 : 1;
-                for (let i = from.row + step; i != to.row; i += step) {
-                    path.push(new Ref(i, from.col));
-                }
-            } else {
-                // Some bullshit
-                return [null, `Illegal move!  Rook may only move either horizontally or vertically.`];
-            }
-        }
-        if (BISHOPS.includes(piece)) {
-            if (ah == av) {
-                const hs = (h < 0) ? -1 : 1;
-                const vs = (v < 0) ? -1 : 1;
-                for (let i = vs, j = hs; i != v; (i += vs) && (j += hs)) {
-                    path.push(new Ref(from.row + i, from.col + j));
-                }
-            } else {
-                // Some bullshit
-                return [null, `Illegal move!  Bishop may only move diagonally.`];
-            }
-        }
-        if (QUEENS.includes(piece)) {
-            if (v == 0) {
-                // Horizontal movement
-                const step = (h < 0) ? -1 : 1;
-                for (let i = from.col + step; i != to.col; i += step) {
-                    path.push(new Ref(from.row, i));
-                }
-            } else if (h == 0) {
-                // Vertical movement
-                const step = (v < 0) ? -1 : 1;
-                for (let i = from.row + step; i != to.row; i += step) {
-                    path.push(new Ref(i, from.col));
-                }
-            } else if (ah == av) {
-                const hs = (h < 0) ? -1 : 1;
-                const vs = (v < 0) ? -1 : 1;
-                for (let i = vs, j = hs; i != v; (i += vs) && (j += hs)) {
-                    path.push(new Ref(from.row + i, from.col + j));
-                }
-            } else {
-                // Some bullshit
-                return [null, `Illegal move!  Queen may only move horizontally, vertically or diagonally.`];
-            }
-        }
-        if (KNIGHTS.includes(piece)) {
-            if (!(av == 2 && ah == 1) && !(av == 1 && ah == 2)) {
-                return [null, `Illegal move!  Invalid target for knight.`];
-            }
-        }
-        if (PAWNS.includes(piece)) {
-            const step = (side) ? -1 : 1;
-
-            if (h == 0 && v == step) {
-                // Single move forward.
-                if (capture) {
-                    return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
-                }
-            } else if (h == 0 && v == (step * 2)) {
-                // Double move forward.
-                if (from.row != ((side) ? 6 : 1)) {
-                    return [null, `Illegal move!  Pawn may not advance two squares, except as its initial move.`];
-                }
-                if (capture) {
-                    return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
-                }
-                path.push(new Ref(from.row + step, from.col));
-            } else if (ah == 1 && v == step) {
-                /*
-                 * Diagonal move forward.
-                 *
-                 * En passant: if the last piece to move was an enemy pawn, and
-                 * it used a double-move, then this piece may capture by moving
-                 * diagonally into the space the enemy pawn would have occupied,
-                 * had it used a single move.
-                 */
-                if (this.moves.length > 0) {
-                    const lastMove = this.moves[this.moves.length - 1];
-                    const [lastV, lastH] = lastMove[1].diff(lastMove[2]);
-                    if (to.col == lastMove[2].col &&
-                            to.row == (lastMove[2].row + step) &&
-                            PAWNS.includes(lastMove[0]) &&
-                            lastH == 0 && Math.abs(lastV) == 2) {
-                        capture = true;
-                        target = result.get(lastMove[2]);
-                        lastMove[2].setCell(result, ' ');
-                    }
-                }
-                if (!capture) {
-                    return [null, `Illegal move!  Pawn may only move diagonally to capture.`];
-                }
-            } else {
-                // Some bullshit
-                return [null, `Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`];
-            }
-
-            if (to.row == ((side) ? 0 : 7)) {
-                to.setCell(result, PROMOTIONS[(side) ? 0 : 1][promotion]);
-            }
-        }
-        if (path.length > 0) {
-            // Check for obstructions
-            for (let i = 0; i < path.length; i++) {
-                if (!this.isEmpty(path[i])) {
-                    return [null, `Illegal move!  Movement is blocked by another piece at ${path[i].label}.`];
-                }
-            }
-        }
-        // Does this move place the player's king in check?
-        let threat = findCheck(result, side);
-        if (threat) {
-            return [null, `Illegal move!  This move would place the king in check from ${threat.getCell(result)} at ${threat.label}.`];
-        }
-
-        return [result, target];
     }
 
     getResult() {
@@ -480,8 +286,8 @@ export class Game {
         }
         if (pieces == "♔♗♚♝") {
             // Only a dead position if both bishops are on the same colour.
-            const bishop1 = findPiece(this.board, WHITE_BISHOP);
-            const bishop2 = findPiece(this.board, BLACK_BISHOP);
+            const bishop1 = findPieces(this.board, WHITE_BISHOP);
+            const bishop2 = findPieces(this.board, BLACK_BISHOP);
             if (bishop1.colour == bishop2.colour) {
                 return 0.5;
             }
@@ -513,8 +319,8 @@ export class Game {
             if (index > 0) {
                 const prev = this.copy();
                 prev.selectTurn(index);
-                const others = findPiece(prev.board, piece).filter(
-                    x => !x.equals(from) && prev.validateMove(x, to)[0]
+                const others = findPieces(prev.board, piece).filter(
+                    x => !x.equals(from) && validateMove(prev.board, prev.moves, x, to)[0]
                 );
                 if (others.length) {
                     let file = true;
@@ -556,7 +362,9 @@ export class Game {
         // Checking indicator
         if (findCheck(board, !side)) {
             let marker = '+';
-            // TODO: checkmate indicator
+            if (inCheckmate(board, !side, this.moves.slice(0, index + 1))) {
+                marker = '#';
+            }
             result += marker;
         }
         return result;
@@ -612,18 +420,19 @@ export function copyBoard(board) {
     return copy;
 }
 
-export function findPiece(board, piece) {
+export function findPieces(board, pieces) {
     /*
-     * Find all instances of a piece on the board.
+     * Find all instances of the given pieces on the board.
      *
      * Returns an Array of Refs to all of the cells on the board that contain
-     * the given piece, in left-to-right, top-to-bottom order.
+     * any of the pieces listed in 'pieces', in left-to-right, top-to-bottom
+     * board order.
      */
     const result = [];
     for (let r = 0; r < board.length; r++) {
         const row = board[r];
         for (let c = 0; c < row.length; c++) {
-            if (row[c] == piece) {
+            if (pieces.includes(row[c])) {
                 result.push(new Ref(r, c));
             }
         }
@@ -655,6 +464,40 @@ export function getPieces(board) {
     return result.sort();
 }
 
+export function getSide(piece) {
+    /*
+     * Return the side of the given piece.
+     *
+     * Arguments:
+     * piece: a single-character string containing the piece.
+     *
+     * Returns:
+     * - true if the piece is white,
+     * - false if the piece is black,
+     * - null if the piece is neither.
+     */
+    if (WHITES.includes(piece)) {
+        return true;
+    } else if (BLACKS.includes(piece)) {
+        return false;
+    }
+    return null;
+}
+
+export function onSide(piece, side) {
+    /*
+     * Return whether the given piece is on the given side.
+     *
+     * Arguments:
+     * piece: a single-character string containing the piece.
+     * side: a boolean value (true = white, false = black).
+     *
+     * Returns:
+     * True if the piece is on the given side, false otherwise.
+     */
+    return (getSide(piece) === side);
+}
+
 export function findCheck(board, side) {
     /*
      * Find whether the given side's king is in check.
@@ -668,7 +511,7 @@ export function findCheck(board, side) {
      * null otherwise.
      */
     const piece = KINGS[(side) ? 0 : 1];
-    const refs = findPiece(board, piece);
+    const refs = findPieces(board, piece);
     if (refs.length == 0) {
         console.log(`Error: ${piece} not found when testing for check.`);
         return false;
@@ -727,42 +570,53 @@ export function findCheck(board, side) {
 
     const len = board.length;
     const row = board[target.row];
+    let orthogonals, diagonals;
+    if (side) {
+        orthogonals = BLACK_QUEEN + BLACK_ROOK;
+        diagonals = BLACK_QUEEN + BLACK_BISHOP;
+    } else {
+        orthogonals = WHITE_QUEEN + WHITE_ROOK;
+        diagonals = WHITE_QUEEN + WHITE_BISHOP;
+    }
     for (let i = 0, step = 1; i < 2; i++) {
         // Vertical
         for (let r = target.row + step; r >= 0 && r < len; r += step) {
             const ref = new Ref(r, target.col);
             const piece = ref.getCell(board);
-            if (piece != ' ') {
-                if (WHITES.includes(piece) == side) {
-                    break;
-                } else if ((ROOKS + QUEENS).includes(piece)) {
-                    return ref;
-                }
+            if (piece == ' ') {
+                continue;
+            }
+            if (orthogonals.includes(piece)) {
+                return ref;
+            } else {
+                break;
             }
         }
         // Horizontal
         for (let c = target.col + step; c >= 0 && c < row.length; c += step) {
             const ref = new Ref(target.row, c);
             const piece = ref.getCell(board);
-            if (piece != ' ') {
-                if (WHITES.includes(piece) == side) {
-                    break;
-                } else if ((ROOKS + QUEENS).includes(piece)) {
-                    return ref;
-                }
+            if (piece == ' ') {
+                continue;
+            }
+            if (orthogonals.includes(piece)) {
+                return ref;
+            } else {
+                break;
             }
         }
+        // Diagonal
         let h = step;
         let v = step;
         for (let j = 0; j < 2; j++) {
             let ref = target.add(v, h);
             let piece = ref.getCell(board);
             while (piece) {
-                if (piece != ' ') {
-                    if (WHITES.includes(piece) == side) {
-                        break;
-                    } else if ((BISHOPS + QUEENS).includes(piece)) {
+                if (piece == ' ') {
+                    if (diagonals.includes(piece)) {
                         return ref;
+                    } else {
+                        break;
                     }
                 }
                 ref = ref.add(v, h);
@@ -774,6 +628,319 @@ export function findCheck(board, side) {
     }
 
     return null;
+}
+
+export function validateMove(board, moves, from, to, promotion=0) {
+    /*
+     * Assess whether the given move is legal.
+     *
+     * Arguments:
+     * board: the board state prior to the move
+     * moves: all prior moves in the game
+     * from: a Ref to the departing square
+     * to: a Ref to the arrival square
+     * promotion: 0=queen, 1=knight, 2=rook, 3=bishop
+     *
+     * Returns:
+     * If the move is legal, an Array containing:
+     *   - the resulting board state,
+     *   - the captured piece, if any, otherwise a space ' '.
+     *
+     * If the move is illegal, return an Array containing:
+     *   - null,
+     *   - a string message detailed why the move was rejected.
+     */
+    const piece = from.getCell(board);
+    const side = WHITES.includes(piece);
+    const [v, h] = to.diff(from);
+    const av = Math.abs(v);
+    const ah = Math.abs(h);
+    const result = copyBoard(board);
+    const check = copyBoard(board);
+
+    let path = [];
+    let target = to.getCell(board);
+    let capture = (target != ' ' && WHITES.includes(target) != side);
+
+    if (target == null) {
+        return [null, `Illegal move!  Destination square is not valid.`];
+    }
+    if (target != ' ' && side == WHITES.includes(target)) {
+        return [null, `Illegal move!  Square ${to.label} is occupied by your own piece.`];
+    }
+
+    from.setCell(result, ' ');
+    to.setCell(result, piece);
+
+    if (KINGS.includes(piece)) {
+        if (from.col == 4 && from.row == ((side) ? 7 : 0) && ah == 2 && v == 0) {
+            // Castling
+            const rookRef = new Ref(to.row, (h > 0) ? 7 : 0);
+            const rook = rookRef.getCell(board);
+            if (rook != ROOKS[(side) ? 0 : 1]) {
+                return [null, `Illegal move!  Rook must be present for king to castle.`];
+            }
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i][1].equals(from) || rookRef.getCell(moves[i][4]) != rook) {
+                    return [null, `Illegal move!  Castling is not allowed if the king or rook has previously moved.`];
+                }
+            }
+            if (h > 0) {
+                [1, 2].forEach(x => path.push(new Ref(from.row, from.col + x)));
+            } else {
+                [1, 2, 3].forEach(x => path.push(new Ref(from.row, from.col - x)));
+            }
+            const rookTo = from.add(0, (h > 0) ? 1 : -1);
+
+            from.setCell(check, ' ');
+            rookTo.setCell(check, piece);
+            let threat = findCheck(check, side);
+            if (threat) {
+                return [null, `Illegal move!  This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`];
+            }
+
+            rookRef.setCell(result, ' ');
+            rookTo.setCell(result, rook);
+        } else {
+            if (av > 1 || ah > 1) {
+                return [null, `Illegal move!  King may move one square in any direction, or two squares when castling.`];
+            }
+        }
+    }
+    if (ROOKS.includes(piece)) {
+        if (v == 0) {
+            // Horizontal movement
+            const step = (h < 0) ? -1 : 1;
+            for (let i = from.col + step; i != to.col; i += step) {
+                path.push(new Ref(from.row, i));
+            }
+        } else if (h == 0) {
+            // Vertical movement
+            const step = (v < 0) ? -1 : 1;
+            for (let i = from.row + step; i != to.row; i += step) {
+                path.push(new Ref(i, from.col));
+            }
+        } else {
+            // Some bullshit
+            return [null, `Illegal move!  Rook may only move either horizontally or vertically.`];
+        }
+    }
+    if (BISHOPS.includes(piece)) {
+        if (ah == av) {
+            const hs = (h < 0) ? -1 : 1;
+            const vs = (v < 0) ? -1 : 1;
+            for (let i = vs, j = hs; i != v; (i += vs) && (j += hs)) {
+                path.push(new Ref(from.row + i, from.col + j));
+            }
+        } else {
+            // Some bullshit
+            return [null, `Illegal move!  Bishop may only move diagonally.`];
+        }
+    }
+    if (QUEENS.includes(piece)) {
+        if (v == 0) {
+            // Horizontal movement
+            const step = (h < 0) ? -1 : 1;
+            for (let i = from.col + step; i != to.col; i += step) {
+                path.push(new Ref(from.row, i));
+            }
+        } else if (h == 0) {
+            // Vertical movement
+            const step = (v < 0) ? -1 : 1;
+            for (let i = from.row + step; i != to.row; i += step) {
+                path.push(new Ref(i, from.col));
+            }
+        } else if (ah == av) {
+            const hs = (h < 0) ? -1 : 1;
+            const vs = (v < 0) ? -1 : 1;
+            for (let i = vs, j = hs; i != v; (i += vs) && (j += hs)) {
+                path.push(new Ref(from.row + i, from.col + j));
+            }
+        } else {
+            // Some bullshit
+            return [null, `Illegal move!  Queen may only move horizontally, vertically or diagonally.`];
+        }
+    }
+    if (KNIGHTS.includes(piece)) {
+        if (!(av == 2 && ah == 1) && !(av == 1 && ah == 2)) {
+            return [null, `Illegal move!  Invalid target for knight.`];
+        }
+    }
+    if (PAWNS.includes(piece)) {
+        const step = (side) ? -1 : 1;
+
+        if (h == 0 && v == step) {
+            // Single move forward.
+            if (capture) {
+                return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
+            }
+        } else if (h == 0 && v == (step * 2)) {
+            // Double move forward.
+            if (from.row != ((side) ? 6 : 1)) {
+                return [null, `Illegal move!  Pawn may not advance two squares, except as its initial move.`];
+            }
+            if (capture) {
+                return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
+            }
+            path.push(new Ref(from.row + step, from.col));
+        } else if (ah == 1 && v == step) {
+            /*
+             * Diagonal move forward.
+             *
+             * En passant: if the last piece to move was an enemy pawn, and
+             * it used a double-move, then this piece may capture by moving
+             * diagonally into the space the enemy pawn would have occupied,
+             * had it used a single move.
+             */
+            if (moves.length > 0) {
+                const lastMove = moves[moves.length - 1];
+                const [lastV, lastH] = lastMove[1].diff(lastMove[2]);
+                if (to.col == lastMove[2].col &&
+                        to.row == (lastMove[2].row + step) &&
+                        PAWNS.includes(lastMove[0]) &&
+                        lastH == 0 && Math.abs(lastV) == 2) {
+                    capture = true;
+                    target = lastMove[2].getCell(result);
+                    lastMove[2].setCell(result, ' ');
+                }
+            }
+            if (!capture) {
+                return [null, `Illegal move!  Pawn may only move diagonally to capture.`];
+            }
+        } else {
+            // Some bullshit
+            return [null, `Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`];
+        }
+
+        if (to.row == ((side) ? 0 : 7)) {
+            to.setCell(result, PROMOTIONS[(side) ? 0 : 1][promotion]);
+        }
+    }
+    if (path.length > 0) {
+        // Check for obstructions
+        for (let i = 0; i < path.length; i++) {
+            const blocker = path[i].getCell(board);
+            if (blocker != ' ') {
+                return [null, `Illegal move!  Movement is blocked by ${blocker} at ${path[i].label}.`];
+            }
+        }
+    }
+    // Does this move place the player's king in check?
+    let threat = findCheck(result, side);
+    if (threat) {
+        return [null, `Illegal move!  This move would place the king in check from ${threat.getCell(result)} at ${threat.label}.`];
+    }
+
+    return [result, target];
+}
+
+export function inCheckmate(board, side, moves) {
+    /*
+     * Return whether a side is in checkmate.
+     *
+     * If the side's king is currently in check, and there is no legal move
+     * which would end in the king being out of check, then the king is in
+     * checkmate and the side's player has lost the game.
+     *
+     * Arguments:
+     * board: a board state
+     * side: the side to examine for checkmate (true = white, false = black)
+     * moves: an Array of moves played thus far in the game
+     *
+     * Returns:
+     * True if checkmate is confirmed, false otherwise.
+     */
+    const origin = findCheck(board, side);
+    if (!origin) {
+        return false;
+    }
+    const attacker = origin.getCell(board);
+    const king = (side) ? WHITE_KING : BLACK_KING;
+    const target = findPieces(board, king)[0];
+    if (!target) {
+        throw "No king found?!";
+    }
+    /*
+     * First, find whether the king is able to move out of check.
+     */
+    let escapes = [
+        [ 1,  1],
+        [ 1,  0],
+        [ 1, -1],
+        [ 0, -1],
+        [-1, -1],
+        [-1,  0],
+        [-1,  1],
+        [ 0,  1],
+        [ 0,  2],
+        [ 0, -2]].map(x => target.add(x[0], x[1]));
+    for (let i = 0; i < escapes.length; i++) {
+        if (validateMove(board, moves, target, escapes[i])[0]) {
+            return false;
+        }
+    }
+
+    /*
+     * Okay, escaping didn't work, determine the path of the attacker.
+     */
+    const [v, h] = target.diff(origin);
+    const av = Math.abs(v);
+    const ah = Math.abs(h);
+    const path = [origin];
+
+    if (v == 0) {
+        // Horizontal
+        const step = (h > 0) ? 1 : -1;
+        for (let i = step; i != h; i += step) {
+            path.push(origin.add(0, i));
+        }
+    } else if (h == 0) {
+        // Vertical
+        const step = (v > 0) ? 1 : -1;
+        for (let i = step; i != v; i += step) {
+            path.push(origin.add(i, 0));
+        }
+    } else if (av == ah) {
+        // Diagonal
+        const vStep = (v > 0) ? 1 : -1;
+        const hStep = (h > 0) ? 1 : -1;
+        for (let i = vStep, j = hStep; i != v; i += vStep, j += hStep) {
+            path.push(origin.add(i, j));
+        }
+    }
+
+    /*
+     * Is there an allied piece that can capture the attacker, or block its
+     * path to the king?
+     */
+    const allies = (side) ?
+        WHITE_QUEEN + WHITE_ROOK + WHITE_BISHOP + WHITE_KNIGHT + WHITE_PAWN :
+        BLACK_QUEEN + BLACK_ROOK + BLACK_BISHOP + BLACK_KNIGHT + BLACK_PAWN;
+    const refs = findPieces(board, allies);
+    for (let i = 0; i < refs.length; i++) {
+        for (let j = 0; j < path.length; j++) {
+            if (validateMove(board, moves, refs[i], path[j])[0]) {
+                return false;
+            }
+        }
+        /*
+         * If the attacking piece is a pawn, is it vulnerable to an en
+         * passant capture?  This scenario is very unlikely, but we must make
+         * sure.
+         */
+        const ally = refs[i].getCell(board);
+        if (PAWNS.includes(ally) && PAWNS.includes(attacker)) {
+            const last = moves[moves.length - 1];
+            const [v, h] = last[2].diff(last[1]);
+            if (last[2] == origin && Math.abs(v) == 2 && h == 0) {
+                const single = last[1].add((v > 0) ? 1 : -1, 0);
+                if (validateMove(board, moves, refs[i], single)[0]) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 export function writeTagValuePGN(value) {
