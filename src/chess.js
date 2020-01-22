@@ -22,6 +22,9 @@ export const BISHOPS = WHITE_BISHOP + BLACK_BISHOP;
 export const QUEENS = WHITE_QUEEN + BLACK_QUEEN;
 export const KINGS = WHITE_KING + BLACK_KING;
 
+export const ORTHOGONALS = QUEENS + ROOKS;
+export const DIAGONALS = QUEENS + BISHOPS;
+
 export const PROMOTIONS = [
     WHITE_QUEEN + WHITE_KNIGHT + WHITE_ROOK + WHITE_BISHOP,
     BLACK_QUEEN + BLACK_KNIGHT + BLACK_ROOK + BLACK_BISHOP];
@@ -46,6 +49,27 @@ export const DEAD_POSITIONS = [
     "♔♚♝",
     "♔♘♚",
     "♔♚♞"];
+
+export const KNIGHT_VECTORS = [
+    [ 1,  2],
+    [ 2,  1],
+    [ 2, -1],
+    [ 1, -2],
+    [-1, -2],
+    [-2, -1],
+    [-2,  1],
+    [-1,  2]];
+export const KING_VECTORS = [
+    [ 1,  1],
+    [ 1,  0],
+    [ 1, -1],
+    [ 0, -1],
+    [-1, -1],
+    [-1,  0],
+    [-1,  1],
+    [ 0,  1],
+    [ 0,  2],
+    [ 0, -2]];
 
 export class Ref {
     constructor(row, col) {
@@ -279,10 +303,13 @@ export class Game {
          *   in which case the game is an automatic draw.
          */
         const side = (this.turn % 2 != 0);
-        if (inCheckmate(this.board, side, this.moves.slice(0, this.turn))) {
+        const moves = this.moves.slice(0, this.turn);
+        if (inCheckmate(this.board, side, moves)) {
             return (side) ? 0 : 1;
         }
-        // TODO: Stalemate
+        if (inStalemate(this.board, side, moves)) {
+            return 0.5;
+        }
         const pieces = getPieces(this.board).join('');
         if (DEAD_POSITIONS.includes(pieces)) {
             return 0.5;
@@ -522,17 +549,8 @@ export function findCheck(board, side) {
     const target = refs[0];
 
     // Knights
-    let vectors = [
-        [ 1,  2],
-        [ 2,  1],
-        [ 2, -1],
-        [ 1, -2],
-        [-1, -2],
-        [-2, -1],
-        [-2,  1],
-        [-1,  2]];
-    for (let i = 0; i < vectors.length; i++) {
-        const v = vectors[i]
+    for (let i = 0; i < KNIGHT_VECTORS.length; i++) {
+        const v = KNIGHT_VECTORS[i]
         const ref = target.add(v[0], v[1]);
         const piece = ref.getCell(board);
         if (KNIGHTS.includes(piece) && WHITES.includes(piece) != side) {
@@ -541,7 +559,7 @@ export function findCheck(board, side) {
     }
 
     // Pawns
-    vectors = [
+    let vectors = [
         [(side) ? -1 : 1,  1],
         [(side) ? -1 : 1, -1]];
     for (let i = 0; i < vectors.length; i++) {
@@ -631,6 +649,111 @@ export function findCheck(board, side) {
     }
 
     return null;
+}
+
+export function getMoves(board, from) {
+    /*
+     * Return the set of all possible moves for the given piece.
+     *
+     * The move set is not tested for legality, it is simply the set of all
+     * locations the piece could theoretically move to, given its movement
+     * type.
+     *
+     * Collisions are taken into account, but more complex movement
+     * restrictions are not.  To discover whether a move is actually legal you
+     * must use validateMove().
+     *
+     * Arguments:
+     * board: a game board state
+     * from: a Ref to the square the piece is departing from
+     *
+     * Returns:
+     * An Array of Refs to possible destination squares.
+     */
+    const result = [];
+    const piece = from.getCell(board);
+    const side = getSide(piece);
+    let vectors = null;
+
+    if (KINGS.includes(piece)) {
+        vectors = KING_VECTORS;
+    } else if (KNIGHTS.includes(piece)) {
+        vectors = KNIGHT_VECTORS;
+    } else if (PAWNS.includes(piece)) {
+        vectors = [
+            [1,  0],
+            [2,  0],
+            [1,  1],
+            [1, -1]];
+        if (side) {
+            vectors = vectors.map(([r, c]) => [-r, c]);
+        }
+    }
+    if (vectors) {
+        const refs = vectors.map(([r, c]) => from.add(r, c));
+        refs.forEach(x => {
+            const target = x.getCell(board);
+            if (target != null && !onSide(target, side)) {
+                result.push(x);
+            }
+        });
+        return result;
+    }
+
+    const len = board.length;
+    const row = board[from.row];
+    if (ORTHOGONALS.includes(piece)) {
+        for (let i = 0, step = 1; i < 2; i++) {
+            // Vertical
+            for (let r = from.row + step; r >= 0 && r < len; r += step) {
+                const ref = new Ref(r, from.col);
+                const target = ref.getCell(board);
+                if (onSide(target, side)) {
+                    break;
+                }
+                result.push(ref);
+                if (target != null) {
+                    break;
+                }
+            }
+            // Horizontal
+            for (let c = from.col + step; c >= 0 && c < row.length; c += step) {
+                const ref = new Ref(from.row, c);
+                const target = ref.getCell(board);
+                if (onSide(target, side)) {
+                    break;
+                }
+                result.push(ref);
+                if (target != null) {
+                    break;
+                }
+            }
+        }
+    }
+    if (DIAGONALS.includes(piece)) {
+        for (let i = 0, step = 1; i < 2; i++) {
+            let h = step;
+            let v = step;
+            for (let j = 0; j < 2; j++) {
+                let ref = from.add(v, h);
+                let target = ref.getCell(board);
+                while (target) {
+                    if (onSide(target, side)) {
+                        break;
+                    }
+                    result.push(ref);
+                    if (target != ' ') {
+                        break;
+                    }
+                    ref = ref.add(v, h);
+                    target = ref.getCell(board);
+                }
+                v = -step;
+            }
+            step = -step;
+        }
+    }
+    return result;
 }
 
 export function validateMove(board, moves, from, to, promotion=0) {
@@ -866,17 +989,7 @@ export function inCheckmate(board, side, moves) {
     /*
      * First, find whether the king is able to move out of check.
      */
-    let escapes = [
-        [ 1,  1],
-        [ 1,  0],
-        [ 1, -1],
-        [ 0, -1],
-        [-1, -1],
-        [-1,  0],
-        [-1,  1],
-        [ 0,  1],
-        [ 0,  2],
-        [ 0, -2]].map(x => target.add(x[0], x[1]));
+    let escapes = KING_VECTORS.map(x => target.add(x[0], x[1]));
     for (let i = 0; i < escapes.length; i++) {
         if (validateMove(board, moves, target, escapes[i])[0]) {
             return false;
@@ -940,6 +1053,38 @@ export function inCheckmate(board, side, moves) {
                 if (validateMove(board, moves, refs[i], single)[0]) {
                     return false;
                 }
+            }
+        }
+    }
+    return true;
+}
+
+export function inStalemate(board, side, moves) {
+    /*
+     * Return whether a game is in stalemate.
+     *
+     * If the side to move is not in check, but there is no legal move
+     * available to the player, a stalemate has been reached, and the game ends
+     * in an automatic draw.
+     *
+     * Arguments:
+     * board: a board state
+     * side: the side to play next
+     * moves: an Array of moves played thus far in the game
+     *
+     * Returns:
+     * True if a stalemate is confirmed, false otherwise.
+     */
+    if (findCheck(board, side)) {
+        return false;
+    }
+    const pieces = getPieces(board).filter(x => onSide(x, side));
+    const refs = findPieces(board, pieces);
+    for (let i = 0; i < refs.length; i++) {
+        const dests = getMoves(board, refs[i]);
+        for (let j = 0; j < dests.length; j++) {
+            if (validateMove(board, moves, refs[i], dests[j])[0]) {
+                return false;
             }
         }
     }
