@@ -411,7 +411,7 @@ export class Game {
         let token = '';
         for (let i = 0; i < this.moves.length; i++) {
             if (i % 2 == 0) {
-                token += (Math.floor(i / 2) + 1) + '.';
+                token += (Math.floor(i / 2) + 1) + '. ';
             }
             token += this.getMoveSAN(i);
             if (length + token.length < 78) {
