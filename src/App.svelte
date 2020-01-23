@@ -121,7 +121,8 @@
                         <div class="ui {(game.turn % 2 == 0) ? 'primary' : ''} button" title="Black"><big>{BLACK_PAWN}</big></div>
                     </div>
                     <div class="ui fluid steps">
-                        <div class="step">Turn&emsp;<strong>{game.turn}</strong></div>
+                        <div
+                            class="step">Turn&emsp;<strong>{Math.ceil(game.turn / 2)}</strong></div>
                         <div class="active step">
                             {#if game.result == 0}
                             Game over&emsp;<strong>Black wins</strong>
@@ -140,7 +141,9 @@
                 <a href="#self" class="item {(game.turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
                     <div class="ui grid">
                         <div class="two wide column">
-                            <span class="ui label {(i % 2) ? 'black' : ''}">{i+1}</span>
+                            {#if i % 2 == 0}
+                            <span>{Math.floor(i / 2) + 1}.</span>
+                            {/if}
                         </div>
                         <div class="two wide column">
                             <span class="text center"><big>{move[0]}</big></span>
