@@ -1114,3 +1114,244 @@ export function writeTagValuePGN(value) {
     }
     return result + '"';
 }
+
+export function readPGN(source) {
+    /*
+     * Read a game in Portable Game Notation (PGN) format.
+     *
+     * Return a new Game object, or null if the game fails to parse.
+     */
+    const game = new Game();
+    const lines = source.split('\n').filter(x => x.length > 0);
+    const tokens = [];
+    const SYMBOL = /^[A-Za-z0-9][A-Za-z0-9_+#=:/-]*/;
+    const INTEGER = /^\d+/;
+    const TOKENS = {
+        "STRING": 0,
+        "INTEGER": 1,
+        "MOVE_NUMBER": 2,
+        "INCOMPLETE": 3,
+        "OPEN_TAG": 4,
+        "CLOSE_TAG": 5,
+        "OPEN_RAV": 6,
+        "CLOSE_RAV": 7,
+        "NAG": 8,
+        "SYMBOL": 9};
+    const completions = {
+        "0-1": 0,
+        "1-0": 1,
+        "1/2-1/2": 0.5,
+        "*": null};
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line[0] == '%') {
+            continue;
+        }
+        for (let j = 0; j < line.length; j++) {
+            const ch = line[j];
+            if (ch == ';') {
+                // Comment; skip the rest of the line.
+                break;
+            }
+            if (ch == '{') {
+                // Comment; skip until next closing brace.
+                const index = line.slice(j + 1).indexOf('}')
+                j += index + 1;
+            }
+
+            if (ch == '[') {
+                tokens.push([TOKENS.OPEN_TAG, ch]);
+            } else if (ch == ']') {
+                tokens.push([TOKENS.CLOSE_TAG, ch]);
+            } else if (ch == '*') {
+                tokens.push([TOKENS.INCOMPLETE, ch]);
+            } else if (ch == '.') {
+                tokens.push([TOKENS.MOVE_NUMBER, ch]);
+            } else if (ch == '(') {
+                tokens.push([TOKENS.OPEN_RAV, ch]);
+            } else if (ch == ')') {
+                tokens.push([TOKENS.CLOSE_RAV, ch]);
+            }
+
+            const s = line.slice(j);
+            if (ch == '"') {
+                // String; consume until the next unescaped quote.
+                let escaped = false;
+                let token = '';
+                let k = 1;
+                for (;;) {
+                    if (k == s.length) {
+                        return "Reached end of line while parsing string value.  Expected a string terminateion quote.";
+                    }
+                    if (escaped) {
+                        token += s[k];
+                        escaped = false;
+                    }
+                    if (s[k] == '"'){
+                        break;
+                    }
+                    if (s[k] == '\\') {
+                        escaped = true;
+                    } else {
+                        token += s[k];
+                    }
+                    k++;
+                }
+                j += k;
+                tokens.push([TOKENS.STRING, token]);
+            }
+            if (ch == '$') {
+                // Numeric Annotation Glyph (NAG); consume digits.
+                let match = s.slice(1).match(INTEGER);
+                tokens.push([TOKENS.NAG, match[0]]);
+                j += match[0].length;
+                continue;
+            }
+            let match = s.match(SYMBOL);
+            if (match) {
+                let type = TOKENS.SYMBOL;
+                if (match[0].match(/^\d+$/)) {
+                    type = TOKENS.INTEGER;
+                }
+                tokens.push([type, match[0]]);
+                j += match[0].length - 1;
+                continue;
+            }
+
+            // Some other crap, ignore ...
+        }
+    }
+
+    for (let i = 0; i < tokens.length; i++) {
+        const [type, text] = tokens[i];
+        if (type == TOKENS.OPEN_TAG) {
+            // Expect to find a symbol, a string, and a close tag.
+            const [name, value, close] = tokens.slice(i + 1, i + 4);
+            if (name[0] != TOKENS.SYMBOL ||
+                    value[0] != TOKENS.STRING ||
+                    close[0] != TOKENS.CLOSE_TAG) {
+                throw "Invalid tag definition: expected a symbol, followed by a string, followed by a closing square bracket."
+            }
+            game.tags[name[1]] = value[1];
+            i += 3;
+        } else if (type == TOKENS.INCOMPLETE) {
+            game.result = null;
+        } else if (type == TOKENS.NAG) {
+            game.nags[game.moves.length - 1] = text;
+        } else if (type == TOKENS.SYMBOL) {
+            if (Object.keys(completions).includes(text)) {
+                game.result = completions[text];
+            } else {
+                const move = parseSAN(game.board, game.moves, text);
+                if (move[0] != null) {
+                    game.moves.push(move);
+                    game.board = move[4];
+                    game.turn++;
+                }
+            }
+        }
+    }
+    return game;
+}
+
+export function parseSAN(board, moves, text) {
+    /*
+     * Parse and validate a move in Standard Algebraic Notation (SAN).
+     *
+     * If the given move text follows SAN format, parse it and test that
+     * the move is legal by passing it to validateMove().
+     *
+     * Arguments:
+     * board: the board state prior to the current move
+     * moves: the set of moves prior to the current move
+     * text: the SAN text to parse
+     *
+     * Returns:
+     * An Array of:
+     * - the moving piece, or null if not valid
+     * - a Ref to the departing square
+     * - a Ref to the target square
+     * - the piece that was captured, if any
+     * - the board state resulting from the move
+     */
+    const side = (moves.length % 2);
+    const ranks = "12345678";
+    const files = "abcdefgh";
+    let piece = PAWNS[side];
+    let sourceRow = null;
+    let sourceCol = null;
+    let destRow = null;
+    let destCol = null;
+
+    if (text == "O-O") {
+        // King-side (short) castle
+        piece = KINGS[side];
+        destRow = (side == 0) ? 7 : 0;
+        destCol = 6;
+    } else if (text == "O-O-O") {
+        // Queen-side (long) castle
+        piece = KINGS[side];
+        destRow = (side == 0) ? 7 : 0;
+        destCol = 2;
+    } else {
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            if (ch == 'K') {
+                piece = KINGS[side];
+            } else if (ch == 'Q') {
+                piece = QUEENS[side];
+            } else if (ch == 'R') {
+                piece = ROOKS[side];
+            } else if (ch == 'N') {
+                piece = KNIGHTS[side];
+            } else if (ch == 'B') {
+                piece = BISHOPS[side];
+            } else if (ch == 'P') {
+                piece = PAWNS[side];
+            } else if (files.includes(ch)) {
+                const file = ch.charCodeAt(0) - "a".charCodeAt(0);
+                if (destCol != null) {
+                    sourceCol = destCol;
+                    destCol = file;
+                } else {
+                    destCol = file;
+                }
+            } else if (ranks.includes(ch)) {
+                const rank = 8 - parseInt(ch);
+                if (destRow != null) {
+                    sourceRow = destRow;
+                    destRow = rank;
+                } else {
+                    destRow = rank;
+                }
+            }
+            // TODO: annotations
+        }
+    }
+    if (destRow == null || destCol == null) {
+        throw "Destination square not properly specified.";
+    }
+    let refs = findPieces(board, piece);
+    if (sourceCol != null) {
+        refs = refs.filter(x => x.col == sourceCol);
+    }
+    if (sourceRow != null) {
+        refs = refs.filter(x => x.row == sourceRow);
+    }
+    const target = new Ref(destRow, destCol);
+    const candidates = [];
+    for (let i = 0; i < refs.length; i++) {
+        if (validateMove(board, moves, refs[i], target)[0]) {
+            candidates.push(refs[i]);
+        }
+    }
+    if (candidates.length > 1) {
+        throw `Multiple candidates for move "${text}".`;
+    } else if (candidates.length == 0) {
+        throw `No candidates found for move "${text}".`;
+    }
+    piece = candidates[0].getCell(board);
+    const [newBoard, capture] = validateMove(board, moves, candidates[0], target);
+    return [piece, candidates[0], target, capture, newBoard];
+}

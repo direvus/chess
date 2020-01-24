@@ -1,6 +1,6 @@
 <script>
     import Grid from './Grid.svelte';
-    import { Ref, WHITE_PAWN, BLACK_PAWN } from './chess.js';
+    import { Ref, WHITE_PAWN, BLACK_PAWN, readPGN } from './chess.js';
 
     export let game;
 
@@ -9,7 +9,7 @@
     let rotation = false;
     let autorotate = false;
     let exportPGN = '';
-    let showExport = false;
+    let importText = '';
 
     function doMove(fromCol, fromRow, toCol, toRow) {
         const from = new Ref(fromCol, fromRow);
@@ -64,18 +64,51 @@
         }
     }
 
+    function showImport() {
+        window.$('#import_modal').modal('show');
+    }
+
+    function hideImport() {
+        window.$('#import_modal').modal('hide');
+    }
+
     function exportGame() {
         exportPGN = game.exportPGN();
-        window.$('.ui.modal').modal('show');
+        window.$('#export_modal').modal('show');
     }
 
     function hideExport() {
-        window.$('.ui.modal').modal('hide');
+        window.$('#export_modal').modal('hide');
+    }
+
+    function importGame() {
+        let result = readPGN(importText);
+        if (result) {
+            game = result;
+        }
+        window.$('#import_modal').modal('hide');
     }
 </script>
 
 <main>
-    <div class="ui modal">
+    <div class="ui modal" id="import_modal">
+        <i class="close icon"></i>
+        <div class="header">Game import</div>
+        <div class="content">
+            <div class="ui form">
+                <div class="field">
+                    <label>Enter a game in <a href="https://www.chessclub.com/help/PGN-spec">Portable Game Notation (PGN)</a></label>
+                    <textarea bind:value={importText} rows="12"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui positive button" on:click={importGame}>Import</div>
+            <div class="ui button" on:click={hideImport}>Dismiss</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="export_modal">
         <i class="close icon"></i>
         <div class="header">Game export</div>
         <pre><code>{exportPGN}</code></pre>
@@ -98,8 +131,11 @@
         <div class="five wide column">
             <div class="ui fluid vertical menu">
                 <div class="item">
+                    <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                </div>
+                <div class="item">
                     <div class="ui two buttons">
-                        <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                        <div class="ui button" on:click={showImport}><i class="upload icon"></i> Import PGN</div>
                         <div class="ui button" on:click={exportGame}><i class="download icon"></i> Export PGN</div>
                     </div>
                 </div>
