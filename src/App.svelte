@@ -67,6 +67,10 @@
         updateRotation();
     }
 
+    function editGame() {
+        window.$('#edit_modal').modal('show');
+    }
+
     function selectTurn(turn) {
         game.selectTurn(turn);
         game = game;
@@ -126,6 +130,10 @@
         window.$('#message_modal').modal('hide');
     }
 
+    function hideEdit() {
+        window.$('#edit_modal').modal('hide');
+    }
+
     function importGame() {
         let result = readPGN(importText);
         if (result) {
@@ -170,6 +178,87 @@
         </div>
     </div>
 
+    <div class="ui modal" id="edit_modal">
+        <i class="close icon"></i>
+        <div class="header">
+            Edit game details
+        </div>
+        <div class="content">
+            <div class="ui form">
+                <h4 class="ui dividing header">Game details</h4>
+                <div class="four fields">
+                    <div class="field">
+                        <label>Event name</label>
+                        <input type="text" placeholder="Event name" bind:value={game.tags["Event"]}>
+                    </div>
+                    <div class="field">
+                        <label>Event location</label>
+                        <input type="text" placeholder="Event location" bind:value={game.tags["Site"]}>
+                    </div>
+                    <div class="field">
+                        <label>Date</label>
+                        <input type="text" placeholder="YYYY.MM.DD" bind:value={game.tags["Date"]}>
+                    </div>
+                    <div class="field">
+                        <label>Round</label>
+                        <input type="text" placeholder="Round" bind:value={game.tags["Round"]}>
+                    </div>
+                </div>
+                <h4 class="ui dividing header">Players</h4>
+                <div class="two fields">
+                    <div class="field">
+                        <label>White player</label>
+                        <input type="text" placeholder="Lastname, firstname" bind:value={game.tags["White"]}>
+                    </div>
+                    <div class="field">
+                        <label>Black player</label>
+                        <input type="text" placeholder="Lastname, firstname" bind:value={game.tags["Black"]}>
+                    </div>
+                </div>
+                <h4 class="ui dividing header">Game result</h4>
+                <div class="inline four fields">
+                    <div class="field">
+                        <div class="ui radio checkbox">
+                            <input type="radio" name="result" bind:group={game.tags["Result"]} value="*">
+                            <label>Incomplete</label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui radio checkbox">
+                            <input type="radio" name="result" bind:group={game.tags["Result"]} value="1-0">
+                            <label>White wins</label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui radio checkbox">
+                            <input type="radio" name="result" bind:group={game.tags["Result"]} value="0-1">
+                            <label>Black wins</label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui radio checkbox">
+                            <input type="radio" name="result" bind:group={game.tags["Result"]} value="1/2-1/2">
+                            <label>Draw</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui primary button" on:click={hideEdit}>Close</div>
+        </div>
+    </div>
+
+    <div class="ui container">
+        <h1 class="ui header">
+            {("Event" in game.tags && game.tags["Event"]) ? game.tags["Event"] : "Unnamed game"}
+        </h1>
+        <h2 class="ui header">
+            {("White" in game.tags && game.tags["White"] && "Black" in game.tags && game.tags["Black"]) ? game.tags["White"] + " vs. " + game.tags["Black"] : ''}<br/>
+            {("Date" in game.tags && game.tags["Date"]) ? game.tags["Date"] : ''}
+        </h2>
+    </div>
+
     <div class="ui grid">
         <div class="eleven wide column">
             <Grid
@@ -184,7 +273,10 @@
         <div class="five wide column">
             <div class="ui fluid vertical menu">
                 <div class="item">
-                    <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                    <div class="ui two buttons">
+                        <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
+                        <div class="ui button" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
+                    </div>
                 </div>
                 <div class="item">
                     <div class="ui two buttons">

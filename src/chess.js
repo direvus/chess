@@ -174,7 +174,15 @@ export class Game {
             ['♖','♘','♗','♕','♔','♗','♘','♖'],
             ];
         this.moves = [];
-        this.tags = {};
+        this.tags = {
+            "Event": '',
+            "Site": '',
+            "Date": '',
+            "Round": '',
+            "White": '',
+            "Black": '',
+            "Result": '*'
+        };
         this.turn = 1;
         this.result = null;
     }
