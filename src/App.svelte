@@ -1,5 +1,6 @@
 <script>
     import Grid from './Grid.svelte';
+    import Message from './Message.svelte';
     import { Ref, WHITE_PAWN, BLACK_PAWN, readPGN } from './chess.js';
 
     export let game;
@@ -10,14 +11,54 @@
     let autorotate = false;
     let exportPGN = '';
     let importText = '';
+    let message = {
+        "level": "info",
+        "icon": "info circle",
+        "header": '',
+        "message": ''
+    };
+
+    function showMessage(text, header='') {
+        message = {
+            "level": "info",
+            "icon": "info circle",
+            "header": header,
+            "message": text
+        };
+        window.$('#message_modal').modal('show');
+    }
+
+    function showWarning(text, header='') {
+        message = {
+            "level": "warning",
+            "icon": "exclamation triangle",
+            "header": header,
+            "message": text
+        };
+        window.$('#message_modal').modal('show');
+    }
+
+    function showError(text, header='') {
+        message = {
+            "level": "error",
+            "icon": "times circle",
+            "header": header,
+            "message": text
+        };
+        window.$('#message_modal').modal('show');
+    }
 
     function doMove(fromCol, fromRow, toCol, toRow) {
         const from = new Ref(fromCol, fromRow);
         const to = new Ref(toCol, toRow);
-        const move = game.move(from, to);
-        game = game;
-        updateRotation();
-        return move;
+        try {
+            const move = game.move(from, to);
+            game = game;
+            updateRotation();
+            return move;
+        } catch(error) {
+            showError(error, "Illegal move");
+        }
     }
 
     function resetGame() {
@@ -81,6 +122,10 @@
         window.$('#export_modal').modal('hide');
     }
 
+    function hideMessage() {
+        window.$('#message_modal').modal('hide');
+    }
+
     function importGame() {
         let result = readPGN(importText);
         if (result) {
@@ -114,6 +159,14 @@
         <pre><code>{exportPGN}</code></pre>
         <div class="actions">
             <div class="ui primary button" on:click={hideExport}>Dismiss</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="message_modal">
+        <i class="close icon"></i>
+        <Message {...message}/>
+        <div class="actions">
+            <div class="ui primary button" on:click={hideMessage}>Dismiss</div>
         </div>
     </div>
 

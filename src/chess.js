@@ -248,7 +248,7 @@ export class Game {
          * append the details of the move and new board state to the move
          * listing.
          *
-         * Otherwise, we raise the error message as an alert.
+         * Otherwise, we throw the error message as an exception.
          *
          * Arguments:
          * from: a Ref to the departing square
@@ -256,15 +256,15 @@ export class Game {
          * promotion: 0=queen, 1=knight, 2=rook, 3=bishop
          *
          * Returns:
-         * True if the move succeeded, false if it was rejected.
+         * True if the move succeeded, or throw an error message.
          */
         let [newBoard, capture] = validateMove(this.board, this.moves, from, to, promotion);
         if (newBoard) {
             const piece = this.get(from);
             this.board = newBoard;
             /*
-             * In case we've backtracked, erase future moves before recording the
-             * new one.
+             * In case we've backtracked, erase future moves before recording
+             * the new one.
              */
             const pastMoves = this.moves.slice(0, this.turn - 1);
             this.moves = [...pastMoves, [piece, from, to, capture, this.board]];
@@ -273,8 +273,7 @@ export class Game {
 
             return true;
         } else {
-            alert(capture);
-            return false;
+            throw capture;
         }
     }
 
@@ -789,10 +788,10 @@ export function validateMove(board, moves, from, to, promotion=0) {
     let capture = (target != ' ' && WHITES.includes(target) != side);
 
     if (target == null) {
-        return [null, `Illegal move!  Destination square is not valid.`];
+        return [null, `Destination square is not valid.`];
     }
     if (target != ' ' && side == WHITES.includes(target)) {
-        return [null, `Illegal move!  Square ${to.label} is occupied by your own piece.`];
+        return [null, `Square ${to.label} is occupied by your own piece.`];
     }
 
     from.setCell(result, ' ');
@@ -804,11 +803,11 @@ export function validateMove(board, moves, from, to, promotion=0) {
             const rookRef = new Ref(to.row, (h > 0) ? 7 : 0);
             const rook = rookRef.getCell(board);
             if (rook != ROOKS[(side) ? 0 : 1]) {
-                return [null, `Illegal move!  Rook must be present for king to castle.`];
+                return [null, `Rook must be present for king to castle.`];
             }
             for (let i = 0; i < moves.length; i++) {
                 if (moves[i][1].equals(from) || rookRef.getCell(moves[i][4]) != rook) {
-                    return [null, `Illegal move!  Castling is not allowed if the king or rook has previously moved.`];
+                    return [null, `Castling is not allowed if the king or rook has previously moved.`];
                 }
             }
             if (h > 0) {
@@ -822,14 +821,14 @@ export function validateMove(board, moves, from, to, promotion=0) {
             rookTo.setCell(check, piece);
             let threat = findCheck(check, side);
             if (threat) {
-                return [null, `Illegal move!  This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`];
+                return [null, `This castling would move the king through check from ${threat.getCell(check)} at ${threat.label}.`];
             }
 
             rookRef.setCell(result, ' ');
             rookTo.setCell(result, rook);
         } else {
             if (av > 1 || ah > 1) {
-                return [null, `Illegal move!  King may move one square in any direction, or two squares when castling.`];
+                return [null, `King may move one square in any direction, or two squares when castling.`];
             }
         }
     }
@@ -848,7 +847,7 @@ export function validateMove(board, moves, from, to, promotion=0) {
             }
         } else {
             // Some bullshit
-            return [null, `Illegal move!  Rook may only move either horizontally or vertically.`];
+            return [null, `Rook may only move either horizontally or vertically.`];
         }
     }
     if (BISHOPS.includes(piece)) {
@@ -860,7 +859,7 @@ export function validateMove(board, moves, from, to, promotion=0) {
             }
         } else {
             // Some bullshit
-            return [null, `Illegal move!  Bishop may only move diagonally.`];
+            return [null, `Bishop may only move diagonally.`];
         }
     }
     if (QUEENS.includes(piece)) {
@@ -884,12 +883,12 @@ export function validateMove(board, moves, from, to, promotion=0) {
             }
         } else {
             // Some bullshit
-            return [null, `Illegal move!  Queen may only move horizontally, vertically or diagonally.`];
+            return [null, `Queen may only move horizontally, vertically or diagonally.`];
         }
     }
     if (KNIGHTS.includes(piece)) {
         if (!(av == 2 && ah == 1) && !(av == 1 && ah == 2)) {
-            return [null, `Illegal move!  Invalid target for knight.`];
+            return [null, `Invalid target for knight.`];
         }
     }
     if (PAWNS.includes(piece)) {
@@ -898,15 +897,15 @@ export function validateMove(board, moves, from, to, promotion=0) {
         if (h == 0 && v == step) {
             // Single move forward.
             if (capture) {
-                return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
+                return [null, `Pawn may only capture on the diagonal.`];
             }
         } else if (h == 0 && v == (step * 2)) {
             // Double move forward.
             if (from.row != ((side) ? 6 : 1)) {
-                return [null, `Illegal move!  Pawn may not advance two squares, except as its initial move.`];
+                return [null, `Pawn may not advance two squares, except as its initial move.`];
             }
             if (capture) {
-                return [null, `Illegal move!  Pawn may only capture on the diagonal.`];
+                return [null, `Pawn may only capture on the diagonal.`];
             }
             path.push(new Ref(from.row + step, from.col));
         } else if (ah == 1 && v == step) {
@@ -931,11 +930,11 @@ export function validateMove(board, moves, from, to, promotion=0) {
                 }
             }
             if (!capture) {
-                return [null, `Illegal move!  Pawn may only move diagonally to capture.`];
+                return [null, `Pawn may only move diagonally to capture.`];
             }
         } else {
             // Some bullshit
-            return [null, `Illegal move!  Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`];
+            return [null, `Pawn may only move forward, up to two spaces initially and one space otherwise, or diagonally to capture.`];
         }
 
         if (to.row == ((side) ? 0 : 7)) {
@@ -947,14 +946,14 @@ export function validateMove(board, moves, from, to, promotion=0) {
         for (let i = 0; i < path.length; i++) {
             const blocker = path[i].getCell(board);
             if (blocker != ' ') {
-                return [null, `Illegal move!  Movement is blocked by ${blocker} at ${path[i].label}.`];
+                return [null, `Movement is blocked by ${blocker} at ${path[i].label}.`];
             }
         }
     }
     // Does this move place the player's king in check?
     let threat = findCheck(result, side);
     if (threat) {
-        return [null, `Illegal move!  This move would place the king in check from ${threat.getCell(result)} at ${threat.label}.`];
+        return [null, `This move would place the king in check from ${threat.getCell(result)} at ${threat.label}.`];
     }
 
     return [result, target];
