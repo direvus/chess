@@ -42,6 +42,14 @@ export const SAN_PIECES = {
     "♛": "Q",
     "♔": "K",
     "♚": "K"};
+export const STR_TAGS = [
+    "Event",
+    "Site",
+    "Date",
+    "Round",
+    "White",
+    "Black",
+    "Result"];
 
 export const DEAD_POSITIONS = [
     "♔♚",
@@ -184,6 +192,7 @@ export class Game {
             "Result": '*'
         };
         this.turn = 1;
+        this.nags = {};
         this.result = null;
     }
 
@@ -421,6 +430,9 @@ export class Game {
                 token += (Math.floor(i / 2) + 1) + '. ';
             }
             token += this.getMoveSAN(i);
+            if (this.nags[i] > 0) {
+                token += ' $' + this.nags[i];
+            }
             if (length + token.length < 78) {
                 result += ' ' + token;
                 length += 1 + token.length;
@@ -445,6 +457,16 @@ export class Game {
             result += '\n' + end;
         }
         result += '\n'
+        return result;
+    }
+
+    getNonSTRTags() {
+        const result = {};
+        for (const k in this.tags) {
+            if (!STR_TAGS.includes(k)) {
+                result[k] = this.tags[k];
+            }
+        }
         return result;
     }
 }
@@ -1131,7 +1153,7 @@ export function readPGN(source) {
     const game = new Game();
     const lines = source.split('\n').filter(x => x.length > 0);
     const tokens = [];
-    const SYMBOL = /^[A-Za-z0-9][A-Za-z0-9_+#=:/-]*/;
+    const SYMBOL = /^[A-Za-z0-9][A-Za-z0-9_+#=:/!?-]*/;
     const INTEGER = /^\d+/;
     const TOKENS = {
         "STRING": 0,
@@ -1255,6 +1277,9 @@ export function readPGN(source) {
                     game.moves.push(move);
                     game.board = move[4];
                     game.turn++;
+                    if (move[5] > 0) {
+                        game.nags[game.moves.length - 1] = move[5];
+                    }
                 }
             }
         }
@@ -1281,59 +1306,85 @@ export function parseSAN(board, moves, text) {
      * - a Ref to the target square
      * - the piece that was captured, if any
      * - the board state resulting from the move
+     * - annotation as a NAG, or zero
      */
     const side = (moves.length % 2);
     const ranks = "12345678";
     const files = "abcdefgh";
+    const nags = {
+        '!': 1,
+        '?': 2,
+        '!!': 3,
+        '!?': 5,
+        '?!': 6,
+        '??': 4};
     let piece = PAWNS[side];
     let sourceRow = null;
     let sourceCol = null;
     let destRow = null;
     let destCol = null;
+    let promotion = 0;
+    let annotation = '';
+    let nag = 0;
+    let i = 0;
 
-    if (text == "O-O") {
+    if (text.startsWith("O-O")) {
         // King-side (short) castle
         piece = KINGS[side];
         destRow = (side == 0) ? 7 : 0;
         destCol = 6;
+        i = 3;
     } else if (text == "O-O-O") {
         // Queen-side (long) castle
         piece = KINGS[side];
         destRow = (side == 0) ? 7 : 0;
         destCol = 2;
-    } else {
-        for (let i = 0; i < text.length; i++) {
-            const ch = text[i];
-            if (ch == 'K') {
-                piece = KINGS[side];
-            } else if (ch == 'Q') {
-                piece = QUEENS[side];
-            } else if (ch == 'R') {
-                piece = ROOKS[side];
-            } else if (ch == 'N') {
-                piece = KNIGHTS[side];
-            } else if (ch == 'B') {
-                piece = BISHOPS[side];
-            } else if (ch == 'P') {
-                piece = PAWNS[side];
-            } else if (files.includes(ch)) {
-                const file = ch.charCodeAt(0) - "a".charCodeAt(0);
-                if (destCol != null) {
-                    sourceCol = destCol;
-                    destCol = file;
-                } else {
-                    destCol = file;
-                }
-            } else if (ranks.includes(ch)) {
-                const rank = 8 - parseInt(ch);
-                if (destRow != null) {
-                    sourceRow = destRow;
-                    destRow = rank;
-                } else {
-                    destRow = rank;
-                }
+        i = 5;
+    }
+    for (; i < text.length; i++) {
+        const ch = text[i];
+        if (ch == 'K') {
+            piece = KINGS[side];
+        } else if (ch == 'Q') {
+            piece = QUEENS[side];
+        } else if (ch == 'R') {
+            piece = ROOKS[side];
+        } else if (ch == 'N') {
+            piece = KNIGHTS[side];
+        } else if (ch == 'B') {
+            piece = BISHOPS[side];
+        } else if (ch == 'P') {
+            piece = PAWNS[side];
+        } else if (files.includes(ch)) {
+            const file = ch.charCodeAt(0) - "a".charCodeAt(0);
+            if (destCol != null) {
+                sourceCol = destCol;
+                destCol = file;
+            } else {
+                destCol = file;
             }
-            // TODO: annotations
+        } else if (ranks.includes(ch)) {
+            const rank = 8 - parseInt(ch);
+            if (destRow != null) {
+                sourceRow = destRow;
+                destRow = rank;
+            } else {
+                destRow = rank;
+            }
+        } else if (ch == '=') {
+            // Promotion
+            const p = text[i + 1];
+            if (p == 'Q' || QUEENS.includes(p)) {
+                promotion = 0;
+            } else if (p == 'N' || KNIGHTS.includes(p)) {
+                promotion = 1;
+            } else if (p == 'R' || ROOKS.includes(p)) {
+                promotion = 2;
+            } else if (p == 'B' || BISHOPS.includes(p)) {
+                promotion = 3;
+            }
+        } else if (ch == '!' || ch == '?') {
+            annotation += ch;
         }
     }
     if (destRow == null || destCol == null) {
@@ -1349,7 +1400,7 @@ export function parseSAN(board, moves, text) {
     const target = new Ref(destRow, destCol);
     const candidates = [];
     for (let i = 0; i < refs.length; i++) {
-        if (validateMove(board, moves, refs[i], target)[0]) {
+        if (validateMove(board, moves, refs[i], target, promotion)[0]) {
             candidates.push(refs[i]);
         }
     }
@@ -1360,5 +1411,8 @@ export function parseSAN(board, moves, text) {
     }
     piece = candidates[0].getCell(board);
     const [newBoard, capture] = validateMove(board, moves, candidates[0], target);
-    return [piece, candidates[0], target, capture, newBoard];
+    if (annotation.length > 0 && annotation in nags) {
+        nag = nags[annotation];
+    }
+    return [piece, candidates[0], target, capture, newBoard, nag];
 }
