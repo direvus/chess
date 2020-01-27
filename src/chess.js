@@ -151,14 +151,14 @@ export class Ref {
     }
 
     cmp(ref) {
-        if (this.row > ref.row) {
+        if (this.row < ref.row) {
             return -1;
         } else if (this.row > ref.row) {
             return 1;
         }
-        if (this.col > ref.col) {
+        if (this.col < ref.col) {
             return -1;
-        } else if (this.col < ref.col) {
+        } else if (this.col > ref.col) {
             return 1;
         }
         return 0;
