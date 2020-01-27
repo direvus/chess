@@ -42,8 +42,8 @@ describe('Ref', function() {
                 ['a3', 'b3', 'c3', 'd3', 'e3', 'f3', 'g3', 'h3'],
                 ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2'],
                 ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1']];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 8; r++) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
                     const ref = new Ref(r, c);
                     expect(ref.label).to.be.equal(squares[r][c]);
                 }
@@ -63,8 +63,8 @@ describe('Ref', function() {
                 [b, w, b, w, b, w, b, w],
                 [w, b, w, b, w, b, w, b],
                 [b, w, b, w, b, w, b, w]];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 8; r++) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
                     const ref = new Ref(r, c);
                     expect(ref.colour).to.be.equal(squares[r][c]);
                 }
@@ -85,8 +85,8 @@ describe('Ref', function() {
                 [f, f, f, f, f, f, f, f],
                 [f, f, f, f, f, f, f, f],
                 [f, f, f, f, f, f, f, t]];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 8; r++) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
                     const b = new Ref(r, c);
                     expect(a.equals(b)).to.be.equal(squares[r][c]);
                 }
@@ -105,8 +105,8 @@ describe('Ref', function() {
                 [ 1,  1,  1,  1,  1,  1,  1,  1],
                 [ 1,  1,  1,  1,  1,  1,  1,  1],
                 [ 1,  1,  1,  1,  1,  1,  1,  1]];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 8; r++) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
                     const a = new Ref(r, c);
                     expect(a.cmp(b)).to.be.equal(squares[r][c]);
                 }
@@ -125,8 +125,8 @@ describe('Ref', function() {
                 [[ 1, -4], [ 1, -3], [ 1, -2], [ 1, -1], [ 1,  0], [ 1,  1], [ 1,  2], [ 1,  3]],
                 [[ 2, -4], [ 2, -3], [ 2, -2], [ 2, -1], [ 2,  0], [ 2,  1], [ 2,  2], [ 2,  3]],
                 [[ 3, -4], [ 3, -3], [ 3, -2], [ 3, -1], [ 3,  0], [ 3,  1], [ 3,  2], [ 3,  3]]];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 8; r++) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
                     const a = new Ref(r, c);
                     expect(a.diff(b)).to.deep.equal(squares[r][c]);
                 }
@@ -145,14 +145,101 @@ describe('Ref', function() {
                 [[ 1, -4], [ 1, -3], [ 1, -2], [ 1, -1], [ 1,  0], [ 1,  1], [ 1,  2], [ 1,  3]],
                 [[ 2, -4], [ 2, -3], [ 2, -2], [ 2, -1], [ 2,  0], [ 2,  1], [ 2,  2], [ 2,  3]],
                 [[ 3, -4], [ 3, -3], [ 3, -2], [ 3, -1], [ 3,  0], [ 3,  1], [ 3,  2], [ 3,  3]]];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 8; r++) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
                     const square = squares[r][c];
                     const b = a.add(square[0], square[1]);
                     const result = new Ref(r, c);
                     expect(b.equals(result)).to.be.true;
                 }
             }
+        });
+    });
+    describe('#getCell', function() {
+        it("should get board cell contents", function() {
+            const board = [
+                ['♜','♞','♝','♛','♚','♝','♞','♜'],
+                ['♟','♟','♟','♟','♟','♟','♟','♟'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙','♙','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const ref = new Ref(r, c);
+                    expect(ref.getCell(board)).to.equal(board[r][c]);
+                }
+            }
+        });
+        it("should return null for out-of-bounds refs", function() {
+            const board = [
+                ['♜','♞','♝','♛','♚','♝','♞','♜'],
+                ['♟','♟','♟','♟','♟','♟','♟','♟'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙','♙','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            const ref = new Ref(9, 0);
+            expect(ref.getCell(board)).to.be.null;
+        });
+    });
+    describe('#isEmpty', function() {
+        it("should return whether board cells are empty", function() {
+            const board = [
+                ['♜','♞','♝','♛','♚','♝','♞','♜'],
+                ['♟','♟','♟','♟','♟','♟','♟','♟'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙','♙','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            const ref = new Ref(4, 4);
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const ref = new Ref(r, c);
+                    const empty = ref.isEmpty(board);
+                    if (r > 1 && r < 6) {
+                        expect(empty).to.be.true;
+                    } else {
+                        expect(empty).to.be.false;
+                    }
+                }
+            }
+        });
+    });
+    describe('#setCell', function() {
+        it("should set board cell contents", function() {
+            const board = [
+                ['♜','♞','♝','♛','♚','♝','♞','♜'],
+                ['♟','♟','♟','♟','♟','♟','♟','♟'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙','♙','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            const ref = new Ref(4, 4);
+            ref.setCell(board, '♙');
+            expect(board[4][4]).to.equal('♙');
+        });
+        it("should return previous cell contents", function() {
+            const board = [
+                ['♜','♞','♝','♛','♚','♝','♞','♜'],
+                ['♟','♟','♟','♟','♟','♟','♟','♟'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙','♙','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            let ref = new Ref(1, 4);
+            const old = ref.setCell(board, '♙');
+            expect(old).to.equal('♟');
         });
     });
 });
