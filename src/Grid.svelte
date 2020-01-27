@@ -1,6 +1,6 @@
 <script>
     import Cell from './Cell.svelte';
-    import { WHITES } from './chess.js';
+    import {WHITES} from './chess.js';
 
     export let board;
     export let side;
@@ -30,7 +30,6 @@
             col = c;
         }
     }
-
 </script>
 
 <table>

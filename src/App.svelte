@@ -1,7 +1,7 @@
 <script>
     import Grid from './Grid.svelte';
     import Message from './Message.svelte';
-    import { Ref, WHITE_PAWN, BLACK_PAWN, readPGN } from './chess.js';
+    import {Ref, WHITE_PAWN, BLACK_PAWN, readPGN} from './chess.js';
 
     export let game;
 
