@@ -1,5 +1,15 @@
 import {expect} from 'chai';
-import {Ref} from '../src/chess.js';
+import {Ref, Game, copyBoard, findPieces, getPieces} from '../src/chess.js';
+
+const INITIAL_BOARD = [
+    ['♜','♞','♝','♛','♚','♝','♞','♜'],
+    ['♟','♟','♟','♟','♟','♟','♟','♟'],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    ['♙','♙','♙','♙','♙','♙','♙','♙'],
+    ['♖','♘','♗','♕','♔','♗','♘','♖']];
 
 describe('Ref', function() {
     describe('.constructor', function() {
@@ -157,15 +167,7 @@ describe('Ref', function() {
     });
     describe('#getCell', function() {
         it("should get board cell contents", function() {
-            const board = [
-                ['♜','♞','♝','♛','♚','♝','♞','♜'],
-                ['♟','♟','♟','♟','♟','♟','♟','♟'],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                ['♙','♙','♙','♙','♙','♙','♙','♙'],
-                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            const board = INITIAL_BOARD;
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const ref = new Ref(r, c);
@@ -189,15 +191,7 @@ describe('Ref', function() {
     });
     describe('#isEmpty', function() {
         it("should return whether board cells are empty", function() {
-            const board = [
-                ['♜','♞','♝','♛','♚','♝','♞','♜'],
-                ['♟','♟','♟','♟','♟','♟','♟','♟'],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                [' ',' ',' ',' ',' ',' ',' ',' '],
-                ['♙','♙','♙','♙','♙','♙','♙','♙'],
-                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            const board = INITIAL_BOARD;
             const ref = new Ref(4, 4);
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
@@ -241,5 +235,70 @@ describe('Ref', function() {
             const old = ref.setCell(board, '♙');
             expect(old).to.equal('♟');
         });
+    });
+});
+
+describe('Game', function() {
+    describe('.constructor', function() {
+        it("should initialise the game", function() {
+            const g = new Game();
+            expect(g.board).to.deep.equal(INITIAL_BOARD);
+            expect(g.moves).to.be.an('array');
+            expect(g.moves).to.be.empty;
+            expect(g.turn).to.equal(1);
+        });
+    });
+});
+
+describe('copyBoard', function() {
+    it("should copy a game board", function() {
+        const copy = copyBoard(INITIAL_BOARD);
+        expect(copy).to.be.an('array');
+        expect(copy).to.deep.equal(INITIAL_BOARD);
+        expect(copy).to.not.equal(INITIAL_BOARD);
+    });
+});
+
+describe('findPieces', function() {
+    it("should find the white king on the initial board", function() {
+        let refs = findPieces(INITIAL_BOARD, '♔');
+        expect(refs).to.be.an('array').that.has.lengthOf(1);
+        expect(refs[0]).to.be.an.instanceof(Ref);
+        expect(refs[0].row).to.equal(7);
+        expect(refs[0].col).to.equal(4);
+    });
+    it("should find both black rooks on the initial board", function() {
+        let refs = findPieces(INITIAL_BOARD, '♜');
+        expect(refs).to.be.an('array').that.has.lengthOf(2);
+        expect(refs[0]).to.be.an.instanceof(Ref);
+        expect(refs[0].row).to.equal(0);
+        expect(refs[0].col).to.equal(0);
+        expect(refs[1]).to.be.an.instanceof(Ref);
+        expect(refs[1].row).to.equal(0);
+        expect(refs[1].col).to.equal(7);
+    });
+    it("should find all bishops on the initial board", function() {
+        let refs = findPieces(INITIAL_BOARD, '♝♗');
+        expect(refs).to.be.an('array').that.has.lengthOf(4);
+        expect(refs[0]).to.be.an.instanceof(Ref);
+        expect(refs[0].row).to.equal(0);
+        expect(refs[0].col).to.equal(2);
+        expect(refs[1]).to.be.an.instanceof(Ref);
+        expect(refs[1].row).to.equal(0);
+        expect(refs[1].col).to.equal(5);
+        expect(refs[2]).to.be.an.instanceof(Ref);
+        expect(refs[2].row).to.equal(7);
+        expect(refs[2].col).to.equal(2);
+        expect(refs[3]).to.be.an.instanceof(Ref);
+        expect(refs[3].row).to.equal(7);
+        expect(refs[3].col).to.equal(5);
+    });
+});
+
+describe('getPieces', function() {
+    it("should return all pieces on the initial board", function() {
+        let pieces = getPieces(INITIAL_BOARD);
+        expect(pieces).to.be.an('array').that.has.lengthOf(32);
+        expect(pieces.join('')).to.equal('♔♕♖♖♗♗♘♘♙♙♙♙♙♙♙♙♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟');
     });
 });
