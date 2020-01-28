@@ -1,6 +1,7 @@
 import {expect} from 'chai';
-import {Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
-    findCheck} from '../src/chess.js';
+import {
+    Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
+    findCheck, getMoves} from '../src/chess.js';
 
 const INITIAL_BOARD = [
     ['♜','♞','♝','♛','♚','♝','♞','♜'],
@@ -642,5 +643,44 @@ describe('findCheck', function() {
             [' ',' ',' ',' ',' ',' ',' ',' ']];
         let check = findCheck(board, true);
         expect(check).to.be.null;
+    });
+});
+
+describe('getMoves', function() {
+    it("should identify all white pawn moves", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const moves = getMoves(board, new Ref(6, 4));
+        expect(moves).to.be.an('array').that.has.lengthOf(4);
+        expect(moves).to.have.deep.members([
+            new Ref(5, 3),
+            new Ref(5, 5),
+            new Ref(5, 4),
+            new Ref(4, 4)]);
+    });
+    it("should identify all black pawn moves", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ','♟',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const moves = getMoves(board, new Ref(1, 1));
+        expect(moves).to.be.an('array').that.has.lengthOf(4);
+        expect(moves).to.have.deep.members([
+            new Ref(2, 1),
+            new Ref(3, 1),
+            new Ref(2, 0),
+            new Ref(2, 2)]);
     });
 });
