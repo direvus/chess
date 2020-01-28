@@ -1,5 +1,6 @@
 import {expect} from 'chai';
-import {Ref, Game, copyBoard, findPieces, getPieces} from '../src/chess.js';
+import {Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide
+    } from '../src/chess.js';
 
 const INITIAL_BOARD = [
     ['♜','♞','♝','♛','♚','♝','♞','♜'],
@@ -300,5 +301,55 @@ describe('getPieces', function() {
         let pieces = getPieces(INITIAL_BOARD);
         expect(pieces).to.be.an('array').that.has.lengthOf(32);
         expect(pieces.join('')).to.equal('♔♕♖♖♗♗♘♘♙♙♙♙♙♙♙♙♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟');
+    });
+});
+
+describe('getSide', function() {
+    it("should return the side of each valid piece", function() {
+        const pieces = {
+            '♔': true,
+            '♕': true,
+            '♖': true,
+            '♗': true,
+            '♘': true,
+            '♙': true,
+            '♚': false,
+            '♛': false,
+            '♜': false,
+            '♝': false,
+            '♞': false,
+            '♟': false};
+        for (let piece in pieces) {
+            expect(getSide(piece)).to.equal(pieces[piece]);
+        }
+    });
+    it("should return null for an invalid piece", function() {
+        expect(getSide(' ')).to.be.null;
+    });
+});
+
+describe('onSide', function() {
+    it("should return whether each piece is on each side", function() {
+        // piece: [white, black, neither]
+        const pieces = {
+            ' ': [false, false, true],
+            '♔': [true, false, false],
+            '♕': [true, false, false],
+            '♖': [true, false, false],
+            '♗': [true, false, false],
+            '♘': [true, false, false],
+            '♙': [true, false, false],
+            '♚': [false, true, false],
+            '♛': [false, true, false],
+            '♜': [false, true, false],
+            '♝': [false, true, false],
+            '♞': [false, true, false],
+            '♟': [false, true, false]};
+        for (let piece in pieces) {
+            const [white, black, none] = pieces[piece];
+            expect(onSide(piece, true)).to.equal(white);
+            expect(onSide(piece, false)).to.equal(black);
+            expect(onSide(piece, null)).to.equal(none);
+        }
     });
 });
