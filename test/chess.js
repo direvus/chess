@@ -1,6 +1,6 @@
 import {expect} from 'chai';
-import {Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide
-    } from '../src/chess.js';
+import {Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
+    findCheck} from '../src/chess.js';
 
 const INITIAL_BOARD = [
     ['♜','♞','♝','♛','♚','♝','♞','♜'],
@@ -351,5 +351,296 @@ describe('onSide', function() {
             expect(onSide(piece, false)).to.equal(black);
             expect(onSide(piece, null)).to.equal(none);
         }
+    });
+});
+
+describe('findCheck', function() {
+    it("should identify a vertical queen check", function() {
+        const board = [
+            [' ',' ',' ',' ','♛',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(0);
+        expect(check.col).to.equal(4);
+    });
+    it("should identify a horizontal queen check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ','♛',' ']];
+        const check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(7);
+        expect(check.col).to.equal(6);
+    });
+    it("should identify a diagonal queen check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ','♛',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(4);
+        expect(check.col).to.equal(1);
+    });
+    it("should identify a vertical rook check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♖',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(6);
+        expect(check.col).to.equal(4);
+    });
+    it("should identify a horizontal rook check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            ['♚',' ',' ',' ',' ',' ',' ','♖'],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(3);
+        expect(check.col).to.equal(7);
+    });
+    it("should identify a bishop check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ','♔',' '],
+            [' ',' ',' ',' ',' ','♝',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(2);
+        expect(check.col).to.equal(5);
+    });
+    it("should identify a SSE knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♘',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(6);
+        expect(check.col).to.equal(3);
+    });
+    it("should identify a SSW knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ','♘',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(6);
+        expect(check.col).to.equal(1);
+    });
+    it("should identify a WSW knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            ['♘',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(5);
+        expect(check.col).to.equal(0);
+    });
+    it("should identify a WNW knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            ['♘',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(3);
+        expect(check.col).to.equal(0);
+    });
+    it("should identify a NNW knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ','♘',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(2);
+        expect(check.col).to.equal(1);
+    });
+    it("should identify a NNE knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♘',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(2);
+        expect(check.col).to.equal(3);
+    });
+    it("should identify a ENE knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♘',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(3);
+        expect(check.col).to.equal(4);
+    });
+    it("should identify a ESE knight check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♘',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(5);
+        expect(check.col).to.equal(4);
+    });
+    it("should identify a mutual king check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♔',' ',' ',' ',' '],
+            [' ',' ','♚',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        let check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(4);
+        expect(check.col).to.equal(2);
+
+        check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(3);
+        expect(check.col).to.equal(3);
+    });
+    it("should identify a black pawn check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♟',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♔',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        let check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(2);
+        expect(check.col).to.equal(2);
+    });
+    it("should identify a white pawn check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♚',' ',' ',' ',' '],
+            [' ',' ','♙',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        let check = findCheck(board, false);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(4);
+        expect(check.col).to.equal(2);
+    });
+    it("should identify a multiple check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ','♛',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ','♟',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♔',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        let check = findCheck(board, true);
+        expect(check).to.be.an.instanceof(Ref);
+        expect(check.row).to.equal(2);
+        expect(check.col).to.equal(2);
+    });
+    it("should identify a non-check", function() {
+        const board = [
+            [' ',' ',' ',' ',' ','♛',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♟',' ',' ',' ',' '],
+            [' ',' ',' ','♔',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        let check = findCheck(board, true);
+        expect(check).to.be.null;
     });
 });
