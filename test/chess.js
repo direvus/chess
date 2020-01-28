@@ -1,3 +1,5 @@
+/* coding: utf-8 */
+/* eslint-env mocha */
 import {expect} from 'chai';
 import {
     Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
