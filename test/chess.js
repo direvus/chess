@@ -3,7 +3,8 @@
 import {expect} from 'chai';
 import {
     Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
-    findCheck, getMoves, writeTagValuePGN} from '../src/chess.js';
+    findCheck, getMoves, inCheckmate, writeTagValuePGN
+    } from '../src/chess.js';
 
 const INITIAL_BOARD = [
     ['♜','♞','♝','♛','♚','♝','♞','♜'],
@@ -684,6 +685,74 @@ describe('getMoves', function() {
             new Ref(3, 1),
             new Ref(2, 0),
             new Ref(2, 2)]);
+    });
+});
+
+describe('inCheckmate', function() {
+    it("should return false for non-check", function() {
+        const board = INITIAL_BOARD;
+        expect(inCheckmate(board, true, [])).to.be.false;
+        expect(inCheckmate(board, false, [])).to.be.false;
+    });
+    it("should return false for king escape", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ','♛',' ']];
+        expect(inCheckmate(board, true, [])).to.be.false;
+    });
+    it("should return false for captureable threat", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♟',' ','♖',' ',' '],
+            [' ',' ',' ',' ','♖',' ',' ','♚']];
+        expect(inCheckmate(board, false, [])).to.be.false;
+    });
+    it("should return false for blockable threat", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♝',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ','♖',' ',' '],
+            [' ',' ',' ',' ','♖',' ',' ','♚']];
+        expect(inCheckmate(board, false, [])).to.be.false;
+    });
+    it("should return true for fool's mate", function() {
+        const board = [
+            ['♜','♞','♝',' ','♚','♝','♞','♜'],
+            ['♟','♟','♟','♟',' ','♟','♟','♟'],
+            [' ',' ',' ',' ','♟',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ','♙','♛'],
+            [' ',' ',' ',' ',' ','♙',' ',' '],
+            ['♙','♙','♙','♙','♙',' ',' ','♙'],
+            ['♖','♘','♗','♕','♔','♗','♘','♖']];
+        expect(inCheckmate(board, true, [])).to.be.true;
+    });
+    it("should return true for double rook mate", function() {
+        const board = [
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ','♖',' ',' '],
+            [' ',' ',' ',' ','♖',' ',' ','♚']];
+        expect(inCheckmate(board, false, [])).to.be.true;
     });
 });
 
