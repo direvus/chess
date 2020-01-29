@@ -3,7 +3,7 @@
 import {expect} from 'chai';
 import {
     Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
-    findCheck, getMoves} from '../src/chess.js';
+    findCheck, getMoves, writeTagValuePGN} from '../src/chess.js';
 
 const INITIAL_BOARD = [
     ['♜','♞','♝','♛','♚','♝','♞','♜'],
@@ -684,5 +684,20 @@ describe('getMoves', function() {
             new Ref(3, 1),
             new Ref(2, 0),
             new Ref(2, 2)]);
+    });
+});
+
+describe('writeTagValuePGN', function() {
+    it("should double quote string values", function() {
+        expect(writeTagValuePGN("ABCDEF")).to.be.equal('"ABCDEF"');
+    });
+    it("should backslash-escape double quotes", function() {
+        expect(writeTagValuePGN('"ABCDEF"')).to.be.equal('"\\"ABCDEF\\""');
+    });
+    it("should backslash-escape backslashes", function() {
+        expect(writeTagValuePGN('ABC\\DEF')).to.be.equal('"ABC\\\\DEF"');
+    });
+    it("should strip out non-printing characters and tabs", function() {
+        expect(writeTagValuePGN("\x01ABC\tDEF\x02")).to.be.equal('"ABCDEF"');
     });
 });
