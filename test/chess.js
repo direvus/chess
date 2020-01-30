@@ -415,6 +415,87 @@ describe('Game', function() {
             expect(g).to.deep.equal(orig);
         });
     });
+    describe('#move', function() {
+        it("should execute a valid move", function() {
+            const g = new Game();
+            const result = g.move(new Ref(6, 4), new Ref(4, 4));
+            expect(result).to.be.true;
+            expect(g.moves).to.be.an('array').that.has.lengthOf(1);
+            expect(g.turn).to.equal(2);
+            expect(g.result).to.be.null;
+            expect(g.board).to.deep.equal([
+                ['♜','♞','♝','♛','♚','♝','♞','♜'],
+                ['♟','♟','♟','♟','♟','♟','♟','♟'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙',' ','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']]);
+        });
+        it("should not execute an illegal move", function() {
+            const g = new Game();
+            const from = new Ref(6, 4);
+            const to = new Ref(6, 3);
+            expect(() => g.move(from, to)).to.throw;
+        });
+        it("should promote to queen if indicated", function() {
+            const g = new Game();
+            g.board = [
+                [' ','♚',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙',' ','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            g.move(new Ref(1, 4), new Ref(0, 4), 0);
+            expect(g.board[0][4]).to.equal('♕');
+        });
+        it("should promote to knight if indicated", function() {
+            const g = new Game();
+            g.board = [
+                [' ','♚',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ','♟',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']];
+            g.move(new Ref(6, 1), new Ref(7, 1), 1);
+            expect(g.board[7][1]).to.equal('♞');
+        });
+        it("should promote to rook if indicated", function() {
+            const g = new Game();
+            g.board = [
+                [' ','♚',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♙','♙','♙','♙',' ','♙','♙','♙'],
+                ['♖','♘','♗','♕','♔','♗','♘','♖']];
+            g.move(new Ref(1, 4), new Ref(0, 4), 2);
+            expect(g.board[0][4]).to.equal('♖');
+        });
+        it("should promote to bishop if indicated", function() {
+            const g = new Game();
+            g.board = [
+                [' ','♚',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ','♟',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']];
+            g.move(new Ref(6, 1), new Ref(7, 1), 3);
+            expect(g.board[7][1]).to.equal('♝');
+        });
+    });
 });
 
 describe('copyBoard', function() {
