@@ -310,6 +310,33 @@ describe('Game', function() {
             expect(prev).to.be.null;
         });
     });
+    describe('#isEmpty', function() {
+        it("should return whether a cell is empty", function() {
+            const g = new Game();
+            const empty = [
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false],
+                [true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, true],
+                [true, true, true, true, true, true, true, true],
+                [false, false, false, false, false, false, false, false],
+                [false, false, false, false, false, false, false, false]];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const ref = new Ref(r, c);
+                    expect(g.isEmpty(ref)).to.equal(empty[r][c]);
+                }
+            }
+        });
+        it("should return null for invalid cells", function() {
+            const g = new Game();
+            const ref = new Ref(-1, 4);
+            const empty = g.isEmpty(ref);
+            expect(empty).to.be.null;
+        });
+    });
 });
 
 describe('copyBoard', function() {

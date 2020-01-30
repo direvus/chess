@@ -230,7 +230,11 @@ export class Game {
     }
 
     isEmpty(ref) {
-        return (this.get(ref) == ' ');
+        const piece = this.get(ref);
+        if (piece) {
+            return (piece == ' ');
+        }
+        return null;
     }
 
     copyBoard() {
