@@ -276,6 +276,20 @@ describe('Game', function() {
             expect(copy).to.deep.equal(g);
         });
     });
+    describe('#get', function() {
+        it("should return a cell's contents", function() {
+            const g = new Game();
+            const ref = new Ref(6, 4);
+            const piece = g.get(ref);
+            expect(piece).to.equal('♙');
+        });
+        it("should return null for invalid cells", function() {
+            const g = new Game();
+            const ref = new Ref(8, 4);
+            const piece = g.get(ref);
+            expect(piece).to.be.null;
+        });
+    });
 });
 
 describe('copyBoard', function() {

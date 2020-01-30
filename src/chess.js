@@ -208,7 +208,13 @@ export class Game {
     }
 
     get(ref) {
-      return this.board[ref.row][ref.col];
+        if (ref.row >= 0 && ref.row < this.board.length) {
+            const row = this.board[ref.row];
+            if (ref.col >= 0 && ref.col < row.length) {
+                return row[ref.col];
+            }
+        }
+        return null;
     }
 
     set(ref, value) {
