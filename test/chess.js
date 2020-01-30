@@ -374,6 +374,47 @@ describe('Game', function() {
             expect(empty).to.be.null;
         });
     });
+    describe('#selectTurn', function() {
+        it("should select a valid turn", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4));
+            g.move(new Ref(0, 1), new Ref(2, 2));
+            expect(g.turn).to.equal(3);
+
+            g.selectTurn(0);
+            expect(g.turn).to.equal(1);
+            expect(g.board[6][4]).to.equal('♙');
+
+            g.selectTurn(1);
+            expect(g.turn).to.equal(2);
+            expect(g.board[0][1]).to.equal('♞');
+
+            g.selectTurn(2);
+            expect(g.turn).to.equal(3);
+            expect(g.board[2][2]).to.equal('♞');
+        });
+        it("should do nothing for the current turn", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4));
+            g.move(new Ref(0, 1), new Ref(2, 2));
+
+            const orig = g.copy();
+            g.selectTurn(2);
+            expect(g).to.deep.equal(orig);
+        });
+        it("should do nothing for an invalid turn", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4));
+            g.move(new Ref(0, 1), new Ref(2, 2));
+
+            const orig = g.copy();
+            g.selectTurn(5);
+            expect(g).to.deep.equal(orig);
+
+            g.selectTurn(-1);
+            expect(g).to.deep.equal(orig);
+        });
+    });
 });
 
 describe('copyBoard', function() {

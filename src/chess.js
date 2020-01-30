@@ -57,6 +57,15 @@ export const DEAD_POSITIONS = [
     "♔♚♝",
     "♔♘♚",
     "♔♚♞"];
+export const INITIAL_BOARD = [
+    ['♜','♞','♝','♛','♚','♝','♞','♜'],
+    ['♟','♟','♟','♟','♟','♟','♟','♟'],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' '],
+    ['♙','♙','♙','♙','♙','♙','♙','♙'],
+    ['♖','♘','♗','♕','♔','♗','♘','♖']];
 
 export const KNIGHT_VECTORS = [
     [ 1,  2],
@@ -171,16 +180,7 @@ export class Game {
     }
 
     initialise() {
-        this.board = [
-            ['♜','♞','♝','♛','♚','♝','♞','♜'],
-            ['♟','♟','♟','♟','♟','♟','♟','♟'],
-            [' ',' ',' ',' ',' ',' ',' ',' '],
-            [' ',' ',' ',' ',' ',' ',' ',' '],
-            [' ',' ',' ',' ',' ',' ',' ',' '],
-            [' ',' ',' ',' ',' ',' ',' ',' '],
-            ['♙','♙','♙','♙','♙','♙','♙','♙'],
-            ['♖','♘','♗','♕','♔','♗','♘','♖'],
-            ];
+        this.board = copyBoard(INITIAL_BOARD);
         this.moves = [];
         this.tags = {
             "Event": '',
@@ -271,16 +271,20 @@ export class Game {
          */
         const index = turn - 1;
         const next = turn + 1;
-        if (index >= 0 && index < this.moves.length && next != this.turn) {
+        if (turn >= 0 && index < this.moves.length && next != this.turn) {
             this.turn = next;
-            this.board = copyBoard(this.moves[index][4]);
+            if (turn > 0) {
+                this.board = copyBoard(this.moves[index][4]);
+            } else {
+                this.board = copyBoard(INITIAL_BOARD);
+            }
             this.result = this.getResult();
         }
     }
 
     move(from, to, promotion=0) {
         /*
-         * Execute a move in this game, if is it legal.
+         * Execute a move in this game, if it is legal.
          *
          * We call validateMove() to do all the heavy lifting of finding out
          * whether the move is legal, and determining the new board state that
