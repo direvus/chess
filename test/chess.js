@@ -276,6 +276,43 @@ describe('Game', function() {
             expect(copy).to.deep.equal(g);
         });
     });
+    describe('#copyBoard', function() {
+        it("should copy the board", function() {
+            const g = new Game();
+            g.move(new Ref(7, 1), new Ref(5, 2));
+
+            const copy = g.copyBoard();
+            expect(copy).to.deep.equal(g.board);
+        });
+    });
+    describe('#copyMoves', function() {
+        it("should copy the move history", function() {
+            const g = new Game();
+            g.move(new Ref(7, 1), new Ref(5, 2));
+
+            const copy = g.copyMoves();
+            expect(copy).to.deep.equal(g.moves);
+        });
+    });
+    describe('#copyTags', function() {
+        it("should copy the tags", function() {
+            const g = new Game();
+            g.tags["Event"] = "Test game";
+
+            const copy = g.copyTags();
+            expect(copy).to.deep.equal(g.tags);
+        });
+    });
+    describe('#copyNags', function() {
+        it("should copy the NAGs", function() {
+            const g = new Game();
+            g.nags[0] = 1;
+            g.nags[23] = 6;
+
+            const copy = g.copyNags();
+            expect(copy).to.deep.equal(g.nags);
+        });
+    });
     describe('#get', function() {
         it("should return a cell's contents", function() {
             const g = new Game();
