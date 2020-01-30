@@ -793,6 +793,36 @@ describe('readPGN', function() {
         expect(game.tags).to.have.keys(['Event', 'Site', 'Date', 'Round', 'White', 'Black', 'Result']);
         expect(game.moves).to.be.an('array').that.has.lengthOf(85);
     });
+    it("should read basic annotations", function() {
+        const source = `
+            1. e4! e5? 2. Nf3!! Nc6?? 3. Bb5!? a6?!`;
+        const game = readPGN(source);
+        expect(game).to.not.be.null;
+        expect(game.moves).to.be.an('array').that.has.lengthOf(6);
+        expect(game.nags).to.not.be.null;
+        expect(game.nags).to.not.be.empty;
+        expect(game.nags[0]).to.equal(1);
+        expect(game.nags[1]).to.equal(2);
+        expect(game.nags[2]).to.equal(3);
+        expect(game.nags[3]).to.equal(4);
+        expect(game.nags[4]).to.equal(5);
+        expect(game.nags[5]).to.equal(6);
+    });
+    it("should read numeric annotations", function() {
+        const source = `
+            1. e4 $1 e5 $2 2. Nf3 $3 Nc6 $4 3. Bb5 $5 a6 $6`;
+        const game = readPGN(source);
+        expect(game).to.not.be.null;
+        expect(game.moves).to.be.an('array').that.has.lengthOf(6);
+        expect(game.nags).to.not.be.null;
+        expect(game.nags).to.not.be.empty;
+        expect(game.nags[0]).to.equal(1);
+        expect(game.nags[1]).to.equal(2);
+        expect(game.nags[2]).to.equal(3);
+        expect(game.nags[3]).to.equal(4);
+        expect(game.nags[4]).to.equal(5);
+        expect(game.nags[5]).to.equal(6);
+    });
     it("should throw an error for malformed tags", function() {
         const source = `[Event Event Event]`;
         expect(() => readPGN(source)).to.throw();

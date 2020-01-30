@@ -1267,7 +1267,7 @@ export function readPGN(source) {
         } else if (type == TOKENS.INCOMPLETE) {
             game.result = null;
         } else if (type == TOKENS.NAG) {
-            game.nags[game.moves.length - 1] = text;
+            game.nags[game.moves.length - 1] = parseInt(text);
         } else if (type == TOKENS.SYMBOL) {
             if (Object.keys(completions).includes(text)) {
                 game.result = completions[text];
