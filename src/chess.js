@@ -218,9 +218,15 @@ export class Game {
     }
 
     set(ref, value) {
-        const piece = this.get(ref);
-        this.board[ref.row][ref.col] = value;
-        return piece;
+        if (ref.row >= 0 && ref.row < this.board.length) {
+            const row = this.board[ref.row];
+            if (ref.col >= 0 && ref.col < row.length) {
+                const piece = row[ref.col];
+                row[ref.col] = value;
+                return piece;
+            }
+        }
+        return null;
     }
 
     isEmpty(ref) {

@@ -290,6 +290,26 @@ describe('Game', function() {
             expect(piece).to.be.null;
         });
     });
+    describe('#set', function() {
+        it("should set a cell's contents", function() {
+            const g = new Game();
+            const ref = new Ref(4, 4);
+            g.set(ref, '♙');
+            expect(g.board[4][4]).to.equal('♙');
+        });
+        it("should return the previous cell's contents", function() {
+            const g = new Game();
+            const ref = new Ref(0, 4);
+            const prev = g.set(ref, '♔');
+            expect(prev).to.equal('♚');
+        });
+        it("should return null for invalid cells", function() {
+            const g = new Game();
+            const ref = new Ref(-1, 4);
+            const prev = g.set(ref, '♔');
+            expect(prev).to.be.null;
+        });
+    });
 });
 
 describe('copyBoard', function() {
