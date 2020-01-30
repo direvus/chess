@@ -496,6 +496,23 @@ describe('Game', function() {
             expect(g.board[7][1]).to.equal('♝');
         });
     });
+    describe('#getNonSTRTags', function() {
+        it("should return tags that are not STR", function() {
+            const g = new Game();
+            g.tags["Notes"] = "Test";
+            g.tags["Total time"] = "29:00";
+
+            const tags = g.getNonSTRTags();
+            expect(tags).to.deep.equal({
+                "Notes": "Test",
+                "Total time": "29:00"});
+        });
+        it("should return empty object if there are none", function() {
+            const g = new Game();
+            const tags = g.getNonSTRTags();
+            expect(tags).to.deep.equal({});
+        });
+    });
 });
 
 describe('copyBoard', function() {
