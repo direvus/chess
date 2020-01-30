@@ -253,6 +253,29 @@ describe('Game', function() {
             expect(g.turn).to.equal(1);
         });
     });
+    describe('#initialise', function() {
+        it("should re-initialise the game", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4));
+            g.initialise();
+            expect(g.board).to.deep.equal(INITIAL_BOARD);
+            expect(g.moves).to.be.an('array');
+            expect(g.moves).to.be.empty;
+            expect(g.turn).to.equal(1);
+        });
+    });
+    describe('#copy', function() {
+        it("should copy the game", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4));
+            g.nags[0] = 1;
+            g.tags["Event"] = "Test game";
+            g.result = 0.5;
+
+            const copy = g.copy();
+            expect(copy).to.deep.equal(g);
+        });
+    });
 });
 
 describe('copyBoard', function() {

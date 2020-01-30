@@ -201,6 +201,7 @@ export class Game {
         copy.board = this.copyBoard();
         copy.moves = this.copyMoves();
         copy.tags = this.copyTags();
+        copy.nags = this.copyNags();
         copy.turn = this.turn;
         copy.result = this.result;
         return copy;
@@ -236,6 +237,14 @@ export class Game {
         let copy = {};
         for (let k in this.tags) {
             copy[k] = this.tags[k];
+        }
+        return copy;
+    }
+
+    copyNags() {
+        let copy = {};
+        for (let k in this.nags) {
+            copy[k] = this.nags[k];
         }
         return copy;
     }
