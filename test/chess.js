@@ -3,7 +3,7 @@
 import {expect} from 'chai';
 import {
     Ref, Move, Game, copyBoard, findPieces, getPieces, getSide, onSide,
-    findCheck, getMoves, inCheckmate, writeTagValuePGN, readPGN,
+    findCheck, getMoves, inCheckmate, inStalemate, writeTagValuePGN, readPGN,
     parseSAN
     } from '../src/chess.js';
 
@@ -1003,6 +1003,36 @@ describe('inCheckmate', function() {
             [' ',' ',' ',' ',' ','♖',' ',' '],
             [' ',' ',' ',' ','♖',' ',' ','♚']];
         expect(inCheckmate(board, false, [])).to.be.true;
+    });
+});
+
+describe('inStalemate', function() {
+    it("should return true for stalemate", function() {
+        const board = [
+            [' ',' ',' ',' ',' ','♝','♞','♜'],
+            [' ',' ',' ',' ','♟',' ','♟','♛'],
+            [' ',' ',' ',' ','♕','♟','♚','♜'],
+            [' ',' ',' ',' ',' ',' ',' ','♟'],
+            [' ',' ',' ',' ',' ',' ',' ','♙'],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            ['♙','♙','♙','♙',' ','♙','♙',' '],
+            ['♖','♘','♗',' ','♔','♗','♘','♖']];
+        expect(inStalemate(board, false, [])).to.be.true;
+    });
+    it("should return false for non-stalemates", function() {
+        let board = INITIAL_BOARD;
+        expect(inStalemate(board, false, [])).to.be.false;
+
+        board = [
+            [' ',' ',' ',' ',' ','♝','♞','♜'],
+            [' ',' ','♟',' ','♟',' ','♟','♛'],
+            [' ',' ',' ',' ','♕','♟','♚','♜'],
+            [' ',' ',' ',' ',' ',' ',' ','♟'],
+            [' ',' ',' ',' ',' ',' ',' ','♙'],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            ['♙','♙','♙','♙',' ','♙','♙',' '],
+            ['♖','♘','♗',' ','♔','♗','♘','♖']];
+        expect(inStalemate(board, false, [])).to.be.false;
     });
 });
 
