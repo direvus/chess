@@ -174,6 +174,23 @@ export class Ref {
     }
 }
 
+export class Move {
+    constructor(piece, from, to, capture, board, nag) {
+        this.piece = piece;
+        this.from = from;
+        this.to = to;
+        this.capture = capture;
+        this.board = board;
+        this.nag = nag;
+    }
+    copy() {
+        return new Move(this.piece, this.from, this.to, this.capture, this.board, this.nag);
+    }
+    diff() {
+        return this.from.diff(this.to);
+    }
+}
+
 export class Game {
     constructor() {
         this.initialise();
@@ -192,7 +209,6 @@ export class Game {
             "Result": '*'
         };
         this.turn = 1;
-        this.nags = {};
         this.result = null;
     }
 
@@ -201,7 +217,6 @@ export class Game {
         copy.board = this.copyBoard();
         copy.moves = this.copyMoves();
         copy.tags = this.copyTags();
-        copy.nags = this.copyNags();
         copy.turn = this.turn;
         copy.result = this.result;
         return copy;
@@ -242,25 +257,17 @@ export class Game {
     }
 
     copyMoves() {
-        let copy = [];
+        let result = [];
         this.moves.forEach(move => {
-            copy.push(move.slice());
+            result.push(move.copy());
         });
-        return copy;
+        return result;
     }
 
     copyTags() {
         let copy = {};
         for (let k in this.tags) {
             copy[k] = this.tags[k];
-        }
-        return copy;
-    }
-
-    copyNags() {
-        let copy = {};
-        for (let k in this.nags) {
-            copy[k] = this.nags[k];
         }
         return copy;
     }
@@ -274,7 +281,7 @@ export class Game {
         if (turn >= 0 && index < this.moves.length && next != this.turn) {
             this.turn = next;
             if (turn > 0) {
-                this.board = copyBoard(this.moves[index][4]);
+                this.board = copyBoard(this.moves[index].board);
             } else {
                 this.board = copyBoard(INITIAL_BOARD);
             }
@@ -313,7 +320,8 @@ export class Game {
              * the new one.
              */
             const pastMoves = this.moves.slice(0, this.turn - 1);
-            this.moves = [...pastMoves, [piece, from, to, capture, this.board]];
+            const move = new Move(piece, from, to, capture, this.copyBoard(), 0);
+            this.moves = [...pastMoves, move];
             this.turn += 1;
             this.result = this.getResult();
 
@@ -375,72 +383,76 @@ export class Game {
          * Return the move at 'index' in Standard Algebraic Notation.
          */
         let result = '';
-        const [piece, from, to, capture, board] = this.moves[index];
+        const move = this.moves[index];
         const side = ((index + 1) % 2 != 0);
 
-        if (KINGS.includes(piece) && Math.abs(to.col - from.col) == 2) {
+        if (KINGS.includes(move.piece) && Math.abs(move.to.col - move.from.col) == 2) {
             // Special case for castling.
-            if (to.col == 2) {
+            if (move.to.col == 2) {
                 return 'O-O-O';
-            } else if (to.col == 6) {
+            } else if (move.to.col == 6) {
                 return 'O-O';
             } else {
                 console.log("ERROR: something has gone terribly wrong; the king has moved two squares, but landed somewhere other than files 'c' or  'g'.");
             }
         }
-        if (!PAWNS.includes(piece)) {
-            result += SAN_PIECES[piece];
+        if (!PAWNS.includes(move.piece)) {
+            result += SAN_PIECES[move.piece];
             // Could other pieces of the same type have moved here?
             if (index > 0) {
                 const prev = this.copy();
                 prev.selectTurn(index);
-                const others = findPieces(prev.board, piece).filter(
-                    x => !x.equals(from) && validateMove(prev.board, prev.moves, x, to)[0]
+                const others = findPieces(prev.board, move.piece).filter(
+                    x => !x.equals(move.from) && validateMove(prev.board, prev.moves, x, move.to)[0]
                 );
                 if (others.length) {
                     let file = true;
                     let rank = true;
                     for (let i = 0; i < others.length; i++) {
-                        if (others[i].col == from.col) {
+                        if (others[i].col == move.from.col) {
                             file = false;
                         }
-                        if (others[i].row == from.row) {
+                        if (others[i].row == move.from.row) {
                             rank = false;
                         }
                     }
                     if (file) {
-                        result += from.file;
+                        result += move.from.file;
                     } else if (rank) {
-                        result += from.rank;
+                        result += move.from.rank;
                     } else {
-                        result += from.label;
+                        result += move.from.label;
                     }
                 }
             }
         }
 
-        if (capture != ' ') {
-            if (PAWNS.includes(piece)) {
-                result += from.file;
+        if (move.capture != ' ') {
+            if (PAWNS.includes(move.piece)) {
+                result += move.from.file;
             }
             result += 'x';
         }
 
-        result += to.label;
+        result += move.to.label;
 
         // Promotion?
-        const finalPiece = to.getCell(board);
-        if (piece != finalPiece) {
+        const finalPiece = move.to.getCell(move.board);
+        if (move.piece != finalPiece) {
             result += '=' + SAN_PIECES[finalPiece];
         }
 
         // Checking indicator
-        if (findCheck(board, !side)) {
+        if (findCheck(move.board, !side)) {
             let marker = '+';
-            if (inCheckmate(board, !side, this.moves.slice(0, index + 1))) {
+            if (inCheckmate(move.board, !side, this.moves.slice(0, index + 1))) {
                 marker = '#';
             }
             result += marker;
+        }
+
+        if (move.nag > 0) {
+            result += ' $' + move.nag;
         }
         return result;
     }
@@ -459,9 +471,6 @@ export class Game {
                 token += (Math.floor(i / 2) + 1) + '. ';
             }
             token += this.getMoveSAN(i);
-            if (this.nags[i] > 0) {
-                token += ' $' + this.nags[i];
-            }
             if (length + token.length < 78) {
                 result += ' ' + token;
                 length += 1 + token.length;
@@ -865,7 +874,7 @@ export function validateMove(board, moves, from, to, promotion=0) {
                 return [null, `Rook must be present for king to castle.`];
             }
             for (let i = 0; i < moves.length; i++) {
-                if (moves[i][1].equals(from) || rookRef.getCell(moves[i][4]) != rook) {
+                if (moves[i].to.equals(from) || rookRef.getCell(moves[i].board) != rook) {
                     return [null, `Castling is not allowed if the king or rook has previously moved.`];
                 }
             }
@@ -978,14 +987,14 @@ export function validateMove(board, moves, from, to, promotion=0) {
              */
             if (moves.length > 0) {
                 const lastMove = moves[moves.length - 1];
-                const [lastV, lastH] = lastMove[1].diff(lastMove[2]);
-                if (to.col == lastMove[2].col &&
-                        to.row == (lastMove[2].row + step) &&
-                        PAWNS.includes(lastMove[0]) &&
+                const [lastV, lastH] = lastMove.diff();
+                if (to.col == lastMove.to.col &&
+                        to.row == (lastMove.to.row + step) &&
+                        PAWNS.includes(lastMove.piece) &&
                         lastH == 0 && Math.abs(lastV) == 2) {
                     capture = true;
-                    target = lastMove[2].getCell(result);
-                    lastMove[2].setCell(result, ' ');
+                    target = lastMove.to.getCell(result);
+                    lastMove.to.setCell(result, ' ');
                 }
             }
             if (!capture) {
@@ -1296,19 +1305,16 @@ export function readPGN(source) {
         } else if (type == TOKENS.INCOMPLETE) {
             game.result = null;
         } else if (type == TOKENS.NAG) {
-            game.nags[game.moves.length - 1] = parseInt(text);
+            game.moves[game.moves.length - 1].nag = parseInt(text);
         } else if (type == TOKENS.SYMBOL) {
             if (Object.keys(completions).includes(text)) {
                 game.result = completions[text];
             } else {
                 const move = parseSAN(game.board, game.moves, text);
-                if (move[0] != null) {
+                if (move != null) {
                     game.moves.push(move);
-                    game.board = move[4];
+                    game.board = move.board;
                     game.turn++;
-                    if (move[5] > 0) {
-                        game.nags[game.moves.length - 1] = move[5];
-                    }
                 }
             }
         }
@@ -1329,13 +1335,7 @@ export function parseSAN(board, moves, text) {
      * text: the SAN text to parse
      *
      * Returns:
-     * An Array of:
-     * - the moving piece, or null if not valid
-     * - a Ref to the departing square
-     * - a Ref to the target square
-     * - the piece that was captured, if any
-     * - the board state resulting from the move
-     * - annotation as a NAG, or zero
+     * A Move object, or null if not valid.
      */
     const side = (moves.length % 2);
     const ranks = "12345678";
@@ -1443,5 +1443,5 @@ export function parseSAN(board, moves, text) {
     if (annotation.length > 0 && annotation in nags) {
         nag = nags[annotation];
     }
-    return [piece, candidates[0], target, capture, newBoard, nag];
+    return new Move(piece, candidates[0], target, capture, newBoard, nag);
 }

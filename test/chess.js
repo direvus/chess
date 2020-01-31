@@ -2,8 +2,9 @@
 /* eslint-env mocha */
 import {expect} from 'chai';
 import {
-    Ref, Game, copyBoard, findPieces, getPieces, getSide, onSide,
-    findCheck, getMoves, inCheckmate, writeTagValuePGN, readPGN
+    Ref, Move, Game, copyBoard, findPieces, getPieces, getSide, onSide,
+    findCheck, getMoves, inCheckmate, writeTagValuePGN, readPGN,
+    parseSAN
     } from '../src/chess.js';
 
 const INITIAL_BOARD = [
@@ -268,7 +269,6 @@ describe('Game', function() {
         it("should copy the game", function() {
             const g = new Game();
             g.move(new Ref(6, 4), new Ref(4, 4));
-            g.nags[0] = 1;
             g.tags["Event"] = "Test game";
             g.result = 0.5;
 
@@ -301,16 +301,6 @@ describe('Game', function() {
 
             const copy = g.copyTags();
             expect(copy).to.deep.equal(g.tags);
-        });
-    });
-    describe('#copyNags', function() {
-        it("should copy the NAGs", function() {
-            const g = new Game();
-            g.nags[0] = 1;
-            g.nags[23] = 6;
-
-            const copy = g.copyNags();
-            expect(copy).to.deep.equal(g.nags);
         });
     });
     describe('#get', function() {
@@ -1054,37 +1044,72 @@ describe('readPGN', function() {
         expect(game.moves).to.be.an('array').that.has.lengthOf(85);
     });
     it("should read basic annotations", function() {
-        const source = `
-            1. e4! e5? 2. Nf3!! Nc6?? 3. Bb5!? a6?!`;
+        const source = `1. e4! e5? 2. Nf3!! Nc6?? 3. Bb5!? a6?!`;
         const game = readPGN(source);
         expect(game).to.not.be.null;
         expect(game.moves).to.be.an('array').that.has.lengthOf(6);
-        expect(game.nags).to.not.be.null;
-        expect(game.nags).to.not.be.empty;
-        expect(game.nags[0]).to.equal(1);
-        expect(game.nags[1]).to.equal(2);
-        expect(game.nags[2]).to.equal(3);
-        expect(game.nags[3]).to.equal(4);
-        expect(game.nags[4]).to.equal(5);
-        expect(game.nags[5]).to.equal(6);
+        expect(game.moves[0].nag).to.equal(1);
+        expect(game.moves[1].nag).to.equal(2);
+        expect(game.moves[2].nag).to.equal(3);
+        expect(game.moves[3].nag).to.equal(4);
+        expect(game.moves[4].nag).to.equal(5);
+        expect(game.moves[5].nag).to.equal(6);
     });
     it("should read numeric annotations", function() {
-        const source = `
-            1. e4 $1 e5 $2 2. Nf3 $3 Nc6 $4 3. Bb5 $5 a6 $6`;
+        const source = '1. e4 $1 e5 $2 2. Nf3 $3 Nc6 $4 3. Bb5 $5 a6 $6';
         const game = readPGN(source);
         expect(game).to.not.be.null;
         expect(game.moves).to.be.an('array').that.has.lengthOf(6);
-        expect(game.nags).to.not.be.null;
-        expect(game.nags).to.not.be.empty;
-        expect(game.nags[0]).to.equal(1);
-        expect(game.nags[1]).to.equal(2);
-        expect(game.nags[2]).to.equal(3);
-        expect(game.nags[3]).to.equal(4);
-        expect(game.nags[4]).to.equal(5);
-        expect(game.nags[5]).to.equal(6);
+        expect(game.moves[0].nag).to.equal(1);
+        expect(game.moves[1].nag).to.equal(2);
+        expect(game.moves[2].nag).to.equal(3);
+        expect(game.moves[3].nag).to.equal(4);
+        expect(game.moves[4].nag).to.equal(5);
+        expect(game.moves[5].nag).to.equal(6);
     });
     it("should throw an error for malformed tags", function() {
         const source = `[Event Event Event]`;
         expect(() => readPGN(source)).to.throw();
+    });
+});
+
+describe('parseSAN', function() {
+    it("should read a simple move", function() {
+        const move = parseSAN(INITIAL_BOARD, [], 'e4');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.piece).to.equal('♙');
+        expect(move.from).to.be.an.instanceof(Ref);
+        expect(move.from.row).to.equal(6);
+        expect(move.from.col).to.equal(4);
+        expect(move.to).to.be.an.instanceof(Ref);
+        expect(move.to.row).to.equal(4);
+        expect(move.to.col).to.equal(4);
+    });
+    it("should read basic annotations", function() {
+        let move = parseSAN(INITIAL_BOARD, [], 'e4!');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.nag).to.equal(1);
+
+        move = parseSAN(INITIAL_BOARD, [], 'e4?');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.nag).to.equal(2);
+
+        move = parseSAN(INITIAL_BOARD, [], 'Nf3!!');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.nag).to.equal(3);
+
+        move = parseSAN(INITIAL_BOARD, [], 'Nf3??');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.nag).to.equal(4);
+
+        move = parseSAN(INITIAL_BOARD, [], 'a3!?');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.nag).to.equal(5);
+
+        move = parseSAN(INITIAL_BOARD, [], 'a3?!');
+        expect(move).to.be.an.instanceof(Move);
+        expect(move.nag).to.equal(6);
+    });
+    it("should return null at index 0 for illegal moves", function() {
     });
 });
