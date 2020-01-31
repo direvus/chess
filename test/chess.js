@@ -3,8 +3,8 @@
 import {expect} from 'chai';
 import {
     Ref, Move, Game, copyBoard, findPieces, getPieces, getSide, onSide,
-    findCheck, getMoves, inCheckmate, inStalemate, writeTagValuePGN, readPGN,
-    parseSAN
+    findCheck, getMoves, validateMove, inCheckmate, inStalemate,
+    writeTagValuePGN, readPGN, parseSAN
     } from '../src/chess.js';
 
 const INITIAL_BOARD = [
@@ -935,6 +935,59 @@ describe('getMoves', function() {
             new Ref(3, 1),
             new Ref(2, 0),
             new Ref(2, 2)]);
+    });
+});
+
+describe('validateMove', function() {
+    it("should return [board, capture] for valid moves", function() {
+        let board = INITIAL_BOARD;
+        let result = validateMove(board, [], new Ref(6, 4), new Ref(5, 4));
+        expect(result).to.be.an('array').that.has.lengthOf(2);
+        expect(result[0]).to.be.an('array');
+        expect(result[0][6][4]).to.equal(' ');
+        expect(result[0][5][4]).to.equal('♙');
+        expect(result[1]).to.be.a('string');
+        expect(result[1]).to.equal(' ');
+
+        board = [
+            ['♜','♞','♝','♛','♚','♝','♞','♜'],
+            ['♟','♟','♟','♟',' ','♟','♟','♟'],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♟',' ',' ',' '],
+            [' ',' ',' ','♙',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            ['♙','♙','♙',' ','♙','♙','♙','♙'],
+            ['♖','♘','♗','♕','♔','♗','♘','♖']];
+        result = validateMove(board, [], new Ref(4, 3), new Ref(3, 4));
+        expect(result[0]).to.be.an('array');
+        expect(result[0][4][3]).to.equal(' ');
+        expect(result[0][3][4]).to.equal('♙');
+        expect(result[1]).to.be.a('string');
+        expect(result[1]).to.equal('♟');
+    });
+    it("should return [null, str] for invalid moves", function() {
+        // TODO
+    });
+    it("should allow valid pawn moves", function() {
+        // TODO
+    });
+    it("should allow valid king moves", function() {
+        // TODO
+    });
+    it("should allow valid queen moves", function() {
+        // TODO
+    });
+    it("should allow valid rook moves", function() {
+        // TODO
+    });
+    it("should allow valid knight moves", function() {
+        // TODO
+    });
+    it("should allow valid bishop moves", function() {
+        // TODO
+    });
+    it("should disallow movement through another piece", function() {
+        // TODO
     });
 });
 
