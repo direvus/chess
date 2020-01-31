@@ -1335,7 +1335,7 @@ export function parseSAN(board, moves, text) {
      * text: the SAN text to parse
      *
      * Returns:
-     * A Move object, or null if not valid.
+     * A Move object, or throw an error if the move failed to parse.
      */
     const side = (moves.length % 2);
     const ranks = "12345678";

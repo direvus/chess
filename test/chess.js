@@ -1110,6 +1110,7 @@ describe('parseSAN', function() {
         expect(move).to.be.an.instanceof(Move);
         expect(move.nag).to.equal(6);
     });
-    it("should return null at index 0 for illegal moves", function() {
+    it("should throw an error for invalid moves", function() {
+        expect(() => parseSAN(INITIAL_BOARD, [], 'Qd4')).to.throw;
     });
 });
