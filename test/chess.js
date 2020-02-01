@@ -966,10 +966,234 @@ describe('validateMove', function() {
         expect(result[1]).to.equal('♟');
     });
     it("should return [null, str] for invalid moves", function() {
-        // TODO
+        const board = INITIAL_BOARD;
+        const result = validateMove(board, [], new Ref(0, 0), new Ref(2, 0));
+        expect(result[0]).to.be.null;
+        expect(result[1]).to.be.a('string');
     });
-    it("should allow valid pawn moves", function() {
-        // TODO
+    it("should allow all valid white pawn moves", function() {
+        // White pawn from initial position
+        let board = INITIAL_BOARD;
+        let from = new Ref(6, 4);
+        let squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false,  true, false, false, false],
+            [false, false, false, false,  true, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c]);
+            }
+        }
+        // White pawn captures
+        board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♟',' ','♟',' ',' '],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        from = new Ref(4, 4);
+        squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false,  true,  true,  true, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c]);
+                if (move[0] && from.col != to.col) {
+                    expect(move[1]).to.equal('♟');
+                }
+            }
+        }
+        // White pawn en passant
+        board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♟','♙','♟',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const moves = [
+            new Move('♟', new Ref(1, 3), new Ref(3, 3), ' ', [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ','♟',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♟',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']]),
+            new Move('♙', new Ref(4, 4), new Ref(3, 4), ' ', [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ','♟',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♟','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']]),
+            new Move('♟', new Ref(1, 5), new Ref(3, 5), ' ', [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♟','♙','♟',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']])];
+        from = new Ref(3, 4);
+        squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false,  true,  true, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, moves, from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c], `failed on ${r}, ${c}`);
+                if (move[0] && from.col != to.col) {
+                    expect(move[1]).to.equal('♟');
+                }
+            }
+        }
+    });
+    it("should allow all valid black pawn moves", function() {
+        // Black pawn from initial position
+        let board = INITIAL_BOARD;
+        let from = new Ref(1, 4);
+        let squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false,  true, false, false, false],
+            [false, false, false, false,  true, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c]);
+            }
+        }
+        // Black pawn captures
+        board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♟',' ',' ',' '],
+            [' ',' ',' ','♙',' ','♙',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        from = new Ref(3, 4);
+        squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false,  true,  true,  true, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c]);
+                if (move[0] && from.col != to.col) {
+                    expect(move[1]).to.equal('♙');
+                }
+            }
+        }
+        // Black pawn en passant
+        board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♙','♟','♙',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const moves = [
+            new Move('♙', new Ref(6, 5), new Ref(4, 5), ' ', [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♟',' ',' ',' '],
+                [' ',' ',' ',' ',' ','♙',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♙',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']]),
+            new Move('♟', new Ref(3, 4), new Ref(4, 4), ' ', [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♟','♙',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♙',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']]),
+            new Move('♙', new Ref(6, 3), new Ref(4, 3), ' ', [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♙','♟','♙',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']])];
+        from = new Ref(4, 4);
+        squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false,  true,  true, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, moves, from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c], `failed on ${r}, ${c}`);
+                if (move[0] && from.col != to.col) {
+                    expect(move[1]).to.equal('♙');
+                }
+            }
+        }
     });
     it("should allow valid king moves", function() {
         // TODO

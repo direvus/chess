@@ -175,7 +175,7 @@ export class Ref {
 }
 
 export class Move {
-    constructor(piece, from, to, capture, board, nag) {
+    constructor(piece, from, to, capture, board, nag=0) {
         this.piece = piece;
         this.from = from;
         this.to = to;
