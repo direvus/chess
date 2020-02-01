@@ -486,6 +486,76 @@ describe('Game', function() {
             expect(g.board[7][1]).to.equal('♝');
         });
     });
+    describe('#getMoveSAN', function() {
+        it("should return a simple pawn move", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4));
+            const san = g.getMoveSAN(0);
+            expect(san).to.equal('e4');
+        });
+        it("should return a simple knight move", function() {
+            const g = new Game();
+            g.move(new Ref(7, 1), new Ref(5, 0));
+            const san = g.getMoveSAN(0);
+            expect(san).to.equal('Na3');
+        });
+        it("should disambiguate by piece", function() {
+            const g = new Game();
+            g.move(new Ref(7, 1), new Ref(5, 0)); // Na3
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e6
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            g.move(new Ref(0, 6), new Ref(2, 7)); // Nh6
+            g.move(new Ref(7, 5), new Ref(4, 2)); // Bc4
+            const san = g.getMoveSAN(4);
+            expect(san).to.equal('Bc4');
+        });
+        it("should disambiguate by file for same piece", function() {
+            const g = new Game();
+            g.move(new Ref(7, 1), new Ref(5, 2)); // Nc3
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e5
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            g.move(new Ref(0, 6), new Ref(2, 7)); // Nh6
+            g.move(new Ref(7, 6), new Ref(6, 4)); // Nge2
+            const san = g.getMoveSAN(4);
+            expect(san).to.equal('Nge2');
+        });
+        it("should disambiguate by rank for same piece & file", function() {
+            const g = new Game();
+            g.move(new Ref(6, 3), new Ref(5, 3)); // d3
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e5
+            g.move(new Ref(7, 1), new Ref(6, 3)); // Nd2
+            g.move(new Ref(1, 3), new Ref(2, 3)); // d6
+            g.move(new Ref(7, 6), new Ref(5, 5)); // Nf3
+            g.move(new Ref(1, 5), new Ref(2, 5)); // f6
+            g.move(new Ref(5, 5), new Ref(4, 3)); // Nd4
+            g.move(new Ref(0, 6), new Ref(2, 7)); // Nh6
+            g.move(new Ref(6, 3), new Ref(5, 5)); // Nd2f3
+            const san = g.getMoveSAN(8);
+            expect(san).to.equal('N2f3');
+        });
+        it("should disambiguate by square for same piece, file", function() {
+            const g = new Game();
+            g.board = [
+                [' ',' ',' ',' ',' ',' ','♕','♕'],
+                [' ',' ',' ',' ',' ',' ',' ','♕'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                ['♚',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']];
+            g.move(new Ref(5, 0), new Ref(4, 0));
+            g.move(new Ref(0, 7), new Ref(1, 6));
+            const san = g.getMoveSAN(1);
+            expect(san).to.equal('Qh8g7');
+        });
+        it("should include numeric annotations", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4), 0, 1);
+            const san = g.getMoveSAN(0);
+            expect(san).to.equal('e4 $1');
+        });
+    });
     describe('#getNonSTRTags', function() {
         it("should return tags that are not STR", function() {
             const g = new Game();

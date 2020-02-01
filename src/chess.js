@@ -289,7 +289,7 @@ export class Game {
         }
     }
 
-    move(from, to, promotion=0) {
+    move(from, to, promotion=0, nag=0) {
         /*
          * Execute a move in this game, if it is legal.
          *
@@ -320,7 +320,7 @@ export class Game {
              * the new one.
              */
             const pastMoves = this.moves.slice(0, this.turn - 1);
-            const move = new Move(piece, from, to, capture, this.copyBoard(), 0);
+            const move = new Move(piece, from, to, capture, this.copyBoard(), nag);
             this.moves = [...pastMoves, move];
             this.turn += 1;
             this.result = this.getResult();
@@ -399,30 +399,28 @@ export class Game {
         if (!PAWNS.includes(move.piece)) {
             result += SAN_PIECES[move.piece];
             // Could other pieces of the same type have moved here?
-            if (index > 0) {
-                const prev = this.copy();
-                prev.selectTurn(index);
-                const others = findPieces(prev.board, move.piece).filter(
-                    x => !x.equals(move.from) && validateMove(prev.board, prev.moves, x, move.to)[0]
-                );
-                if (others.length) {
-                    let file = true;
-                    let rank = true;
-                    for (let i = 0; i < others.length; i++) {
-                        if (others[i].col == move.from.col) {
-                            file = false;
-                        }
-                        if (others[i].row == move.from.row) {
-                            rank = false;
-                        }
+            const prev = this.copy();
+            prev.selectTurn(index);
+            const others = findPieces(prev.board, move.piece).filter(
+                x => !x.equals(move.from) && validateMove(prev.board, prev.moves, x, move.to)[0]
+            );
+            if (others.length) {
+                let file = true;
+                let rank = true;
+                for (let i = 0; i < others.length; i++) {
+                    if (others[i].col == move.from.col) {
+                        file = false;
                     }
-                    if (file) {
-                        result += move.from.file;
-                    } else if (rank) {
-                        result += move.from.rank;
-                    } else {
-                        result += move.from.label;
+                    if (others[i].row == move.from.row) {
+                        rank = false;
                     }
+                }
+                if (file) {
+                    result += move.from.file;
+                } else if (rank) {
+                    result += move.from.rank;
+                } else {
+                    result += move.from.label;
                 }
             }
         }
