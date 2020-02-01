@@ -1195,23 +1195,263 @@ describe('validateMove', function() {
             }
         }
     });
-    it("should allow valid king moves", function() {
-        // TODO
+    it("should allow normal valid king moves", function() {
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♔',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' ']];
+        const from = new Ref(4, 3);
+        const squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false,  true,  true,  true, false, false, false],
+            [false, false,  true, false,  true, false, false, false],
+            [false, false,  true,  true,  true, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c], `failed on ${r}, ${c}`);
+            }
+        }
     });
-    it("should allow valid queen moves", function() {
-        // TODO
+    it("should allow valid castling moves", function() {
+        let board = [
+            ['♜',' ',' ',' ','♚',' ',' ','♜'],
+            ['♟','♟','♟','♛','♟','♟',' ','♟'],
+            ['♞',' ',' ','♟','♝','♞','♟','♝'],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            ['♘','♙',' ','♗',' ','♕',' ','♘'],
+            ['♙','♗','♙','♙',' ','♙','♙','♙'],
+            ['♖',' ',' ',' ','♔',' ',' ','♖']];
+        let move = validateMove(board, [], new Ref(7, 4), new Ref(7, 2));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.an('array').that.has.lengthOf(8);
+        expect(move[0][7]).to.deep.equal(
+            [' ',' ','♔','♖',' ',' ',' ','♖']);
+
+        move = validateMove(board, [], new Ref(7, 4), new Ref(7, 6));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.an('array').that.has.lengthOf(8);
+        expect(move[0][7]).to.deep.equal(
+            ['♖',' ',' ',' ',' ','♖','♔',' ']);
+
+        move = validateMove(board, [], new Ref(0, 4), new Ref(0, 2));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.an('array').that.has.lengthOf(8);
+        expect(move[0][0]).to.deep.equal(
+            [' ',' ','♚','♜',' ',' ',' ','♜']);
+
+        move = validateMove(board, [], new Ref(0, 4), new Ref(0, 6));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.an('array').that.has.lengthOf(8);
+        expect(move[0][0]).to.deep.equal(
+            ['♜',' ',' ',' ',' ','♜','♚',' ']);
     });
-    it("should allow valid rook moves", function() {
-        // TODO
+    it("should disallow castling if the king has moved", function() {
+        const board = [
+            ['♜',' ',' ',' ','♚',' ',' ','♜'],
+            ['♟','♟','♟','♛','♟','♟',' ','♟'],
+            ['♞',' ',' ','♟','♝','♞','♟','♝'],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            ['♘','♙',' ','♗',' ','♕',' ','♘'],
+            ['♙','♗','♙','♙',' ','♙','♙','♙'],
+            ['♖',' ',' ',' ','♔',' ',' ','♖']];
+        const moves = [
+            new Move('♔', new Ref(7, 4), new Ref(7, 5), ' ', [
+                ['♜','♞',' ',' ','♚',' ',' ','♜'],
+                ['♟','♟','♟','♛','♟','♟',' ','♟'],
+                [' ',' ',' ','♟','♝','♞','♟','♝'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                ['♘','♙',' ','♗',' ','♕',' ','♘'],
+                ['♙','♗','♙','♙',' ','♙','♙','♙'],
+                ['♖',' ',' ',' ',' ','♔',' ','♖']]),
+            new Move('♞', new Ref(0, 1), new Ref(2, 0), ' ', [
+                ['♜',' ',' ',' ','♚',' ',' ','♜'],
+                ['♟','♟','♟','♛','♟','♟',' ','♟'],
+                ['♞',' ',' ','♟','♝','♞','♟','♝'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                ['♘','♙',' ','♗',' ','♕',' ','♘'],
+                ['♙','♗','♙','♙',' ','♙','♙','♙'],
+                ['♖',' ',' ',' ',' ','♔',' ','♖']]),
+            new Move('♙', new Ref(7, 5), new Ref(7, 4), ' ', [
+                ['♜',' ',' ',' ','♚',' ',' ','♜'],
+                ['♟','♟','♟','♛','♟','♟',' ','♟'],
+                ['♞',' ',' ','♟','♝','♞','♟','♝'],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                ['♘','♙',' ','♗',' ','♕',' ','♘'],
+                ['♙','♗','♙','♙',' ','♙','♙','♙'],
+                ['♖',' ',' ',' ','♔',' ',' ','♖']])];
+        let move = validateMove(board, moves, new Ref(7, 4), new Ref(7, 2));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.null;
     });
-    it("should allow valid knight moves", function() {
-        // TODO
+    it("should disallow castling through check", function() {
+        let board = [
+            ['♜',' ',' ',' ','♚',' ',' ','♜'],
+            ['♟','♟','♟',' ','♟','♟',' ','♟'],
+            ['♞',' ',' ','♟','♝','♞','♟','♝'],
+            [' ','♛',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♙',' ',' ',' '],
+            ['♘','♙',' ',' ',' ',' ',' ','♘'],
+            ['♙','♗','♙','♙',' ','♙','♙','♙'],
+            ['♖',' ',' ','♕','♔',' ',' ','♖']];
+        let move = validateMove(board, [], new Ref(7, 4), new Ref(7, 6));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.null;
     });
-    it("should allow valid bishop moves", function() {
-        // TODO
+    it("should allow all valid queen moves", function() {
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♕',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const from = new Ref(4, 3);
+        const squares = [
+            [false, false, false,  true, false, false, false,  true],
+            [ true, false, false,  true, false, false,  true, false],
+            [false,  true, false,  true, false,  true, false, false],
+            [false, false,  true,  true,  true, false, false, false],
+            [ true,  true,  true, false,  true,  true,  true,  true],
+            [false, false,  true,  true,  true, false, false, false],
+            [false,  true, false,  true, false,  true, false, false],
+            [ true, false, false,  true, false, false,  true, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c], `failed on ${r}, ${c}`);
+            }
+        }
+    });
+    it("should allow all valid rook moves", function() {
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♜',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const from = new Ref(3, 3);
+        const squares = [
+            [false, false, false,  true, false, false, false, false],
+            [false, false, false,  true, false, false, false, false],
+            [false, false, false,  true, false, false, false, false],
+            [ true,  true,  true, false,  true,  true,  true,  true],
+            [false, false, false,  true, false, false, false, false],
+            [false, false, false,  true, false, false, false, false],
+            [false, false, false,  true, false, false, false, false],
+            [false, false, false,  true, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c]);
+            }
+        }
+    });
+    it("should allow all valid knight moves", function() {
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♞',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const from = new Ref(4, 3);
+        const squares = [
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false,  true, false,  true, false, false, false],
+            [false,  true, false, false, false,  true, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false,  true, false, false, false,  true, false, false],
+            [false, false,  true, false,  true, false, false, false],
+            [false, false, false, false, false, false, false, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c], `failed on ${r}, ${c}`);
+            }
+        }
+    });
+    it("should allow all valid bishop moves", function() {
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♗',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const from = new Ref(4, 3);
+        const squares = [
+            [false, false, false, false, false, false, false,  true],
+            [ true, false, false, false, false, false,  true, false],
+            [false,  true, false, false, false,  true, false, false],
+            [false, false,  true, false,  true, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false,  true, false,  true, false, false, false],
+            [false,  true, false, false, false,  true, false, false],
+            [ true, false, false, false, false, false,  true, false]];
+        for (let r = 0; r < squares.length; r++) {
+            for (let c = 0; c < squares[r].length; c++) {
+                const to = new Ref(r, c);
+                const move = validateMove(board, [], from, to);
+                expect(move).to.be.an('array').that.has.lengthOf(2);
+                expect(move[0] != null).to.equal(squares[r][c], `failed on ${r}, ${c}`);
+            }
+        }
     });
     it("should disallow movement through another piece", function() {
-        // TODO
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♟',' ','♟',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ','♟',' ','♕',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        const from = new Ref(4, 3);
+        let move = validateMove(board, [], from, new Ref(4, 0));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.null;
+
+        move = validateMove(board, [], from, new Ref(1, 3));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.null;
+
+        move = validateMove(board, [], from, new Ref(0, 7));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.null;
     });
 });
 
