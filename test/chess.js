@@ -1591,6 +1591,20 @@ describe('validateMove', function() {
         expect(move).to.be.an('array').that.has.lengthOf(2);
         expect(move[0]).to.be.null;
     });
+    it("should disallow movement that puts own king in check", function() {
+        const board = [
+            [' ',' ',' ',' ','♚',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ','♟',' ','♟',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ','♟',' ','♛',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ','♔',' ',' ',' ']];
+        let move = validateMove(board, [], new Ref(7, 4), new Ref(7, 3));
+        expect(move).to.be.an('array').that.has.lengthOf(2);
+        expect(move[0]).to.be.null;
+    });
 });
 
 describe('inCheckmate', function() {
