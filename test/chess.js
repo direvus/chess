@@ -493,6 +493,38 @@ describe('Game', function() {
             const pgn = g.exportPGN();
             expect(pgn).to.equal(`[Event ""]\n[Site ""]\n[Date ""]\n[Round ""]\n[White ""]\n[Black ""]\n[Result "*"]\n\n1. e4 *\n`);
         });
+        it("should wrap lines at 78 characters", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            g.move(new Ref(1, 4), new Ref(3, 4)); // e5
+
+            g.move(new Ref(7, 6), new Ref(5, 5)); // Nf3
+            g.move(new Ref(0, 1), new Ref(2, 2)); // Nc6
+
+            g.move(new Ref(7, 5), new Ref(3, 1)); // Bb5
+            g.move(new Ref(1, 0), new Ref(2, 0)); // a6
+
+            g.move(new Ref(3, 1), new Ref(4, 0)); // Ba4
+            g.move(new Ref(0, 6), new Ref(2, 5)); // Nf6
+
+            g.move(new Ref(7, 4), new Ref(7, 6)); // O-O
+            g.move(new Ref(0, 5), new Ref(1, 4)); // Be7
+
+            g.move(new Ref(7, 5), new Ref(7, 4)); // Re1
+            g.move(new Ref(1, 1), new Ref(3, 1)); // b5
+
+            g.move(new Ref(4, 0), new Ref(5, 1)); // Bb3
+            g.move(new Ref(1, 3), new Ref(2, 3)); // d6
+
+            g.move(new Ref(6, 2), new Ref(5, 2)); // c3
+            g.move(new Ref(0, 4), new Ref(0, 6)); // O-O
+
+            const pgn = g.exportPGN();
+            const lines = pgn.split(`\n`);
+            for (let i = 0; i < lines.length; i++) {
+                expect(lines[i].length < 79);
+            }
+        });
     });
     describe('#getMoveSAN', function() {
         it("should return a simple pawn move", function() {
