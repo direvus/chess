@@ -327,13 +327,13 @@
                             {/if}
                         </div>
                         <div class="two wide column">
-                            <span class="text center"><big>{move[0]}</big></span>
+                            <span class="text center"><big>{move.piece}</big></span>
                         </div>
                         <div class="six wide column">
-                            {move[1].label} <i class="long arrow alternate right icon"></i> {move[2].label}
+                            {move.from.label} <i class="long arrow alternate right icon"></i> {move.to.label}
                         </div>
                         <div class="two wide column">
-                            <span class="text center"><big>{move[3]}</big></span>
+                            <span class="text center"><big>{move.capture}</big></span>
                         </div>
                     </div>
                 </a>
