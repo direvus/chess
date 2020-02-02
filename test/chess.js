@@ -500,7 +500,18 @@ describe('Game', function() {
             expect(san).to.equal('Na3');
         });
         it("should return special notation for castling", function() {
-            // TOOD
+            const g = new Game();
+            g.move(new Ref(6, 3), new Ref(4, 3)); // d4
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e6
+            g.move(new Ref(7, 2), new Ref(5, 4)); // Be3
+            g.move(new Ref(0, 5), new Ref(2, 3)); // Bd6
+            g.move(new Ref(7, 3), new Ref(6, 3)); // Qd2
+            g.move(new Ref(0, 6), new Ref(2, 7)); // Nh6
+            g.move(new Ref(7, 1), new Ref(5, 0)); // Na3
+            g.move(new Ref(0, 4), new Ref(0, 6)); // O-O
+            g.move(new Ref(7, 4), new Ref(7, 2)); // O-O-O
+            expect(g.getMoveSAN(7)).to.equal('O-O');
+            expect(g.getMoveSAN(8)).to.equal('O-O-O');
         });
         it("should disambiguate by piece", function() {
             const g = new Game();
