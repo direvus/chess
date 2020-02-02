@@ -1,12 +1,29 @@
 <script>
     import Grid from './Grid.svelte';
     import Message from './Message.svelte';
-    import {Ref, WHITE_PAWN, BLACK_PAWN, readPGN} from './chess.js';
+    import {Ref, WHITE_PAWN, WHITE_QUEEN, WHITE_KNIGHT, WHITE_ROOK,
+        WHITE_BISHOP, BLACK_PAWN, BLACK_QUEEN, BLACK_KNIGHT, BLACK_ROOK,
+        BLACK_BISHOP, readPGN} from './chess.js';
 
     export let game;
 
+    const PROMOTIONS_WHITE = [
+        WHITE_QUEEN,
+        WHITE_KNIGHT,
+        WHITE_ROOK,
+        WHITE_BISHOP];
+    const PROMOTIONS_BLACK = [
+        BLACK_QUEEN,
+        BLACK_KNIGHT,
+        BLACK_ROOK,
+        BLACK_BISHOP];
+
     let rows = [0, 1, 2, 3, 4, 5, 6, 7];
     let cols = [0, 1, 2, 3, 4, 5, 6, 7];
+    let promotionWhite = 0;
+    let promotionBlack = 0;
+    let promoteWhiteCall = null;
+    let promoteBlackCall = null;
     let rotation = false;
     let autorotate = false;
     let exportPGN = '';
@@ -48,13 +65,33 @@
         window.$('#message_modal').modal('show');
     }
 
-    function doMove(fromCol, fromRow, toCol, toRow) {
+    function doMove(fromCol, fromRow, toCol, toRow, promotion=null) {
         const from = new Ref(fromCol, fromRow);
         const to = new Ref(toCol, toRow);
+        const piece = game.get(from);
+        if (promotion == null) {
+            if (piece == WHITE_PAWN && toRow == 0) {
+                promoteWhiteCall = () => {
+                    window.$('#promote_modal_white').modal('hide');
+                    doMove(fromCol, fromRow, toCol, toRow, promotionWhite);
+                };
+                window.$('#promote_modal_white').modal('show');
+                return;
+            } else if (piece == BLACK_PAWN && toRow == 7) {
+                promoteBlackCall = () => {
+                    window.$('#promote_modal_black').modal('hide');
+                    doMove(fromCol, fromRow, toCol, toRow, promotionBlack);
+                };
+                window.$('#promote_modal_black').modal('show');
+                return;
+            }
+        }
         try {
-            const move = game.move(from, to);
+            const move = game.move(from, to, promotion);
             game = game;
             updateRotation();
+            promoteWhiteCall = null;
+            promoteBlackCall = null;
             return move;
         } catch(error) {
             showError(error, "Illegal move");
@@ -140,6 +177,18 @@
             game = result;
         }
         window.$('#import_modal').modal('hide');
+    }
+
+    function setPromotionWhite(index) {
+        if (index >= 0 && index < PROMOTIONS_WHITE.length) {
+            promotionWhite = index;
+        }
+    }
+
+    function setPromotionBlack(index) {
+        if (index >= 0 && index < PROMOTIONS_BLACK.length) {
+            promotionBlack = index;
+        }
     }
 </script>
 
@@ -246,6 +295,38 @@
         </div>
         <div class="actions">
             <div class="ui primary button" on:click={hideEdit}>Close</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="promote_modal_white">
+        <div class="header">Choose your pawn's promotion:</div>
+        <div class="content">
+            <div class="ui massive four buttons">
+                {#each PROMOTIONS_WHITE as piece, i}
+                <div class="ui button {(promotionWhite == i) ? 'active': ''}" on:click={() => setPromotionWhite(i)}>
+                    <div>{piece}</div>
+                </div>
+                {/each}
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui primary button" on:click={promoteWhiteCall}>Promote</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="promote_modal_black">
+        <div class="header">Choose your pawn's promotion:</div>
+        <div class="content">
+            <div class="ui massive four buttons">
+                {#each PROMOTIONS_BLACK as piece, i}
+                <div class="ui button {(promotionBlack == i) ? 'active': ''}" on:click={() => setPromotionBlack(i)}>
+                    <div>{piece}</div>
+                </div>
+                {/each}
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui primary button" on:click={promoteBlackCall}>Promote</div>
         </div>
     </div>
 
