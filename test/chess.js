@@ -244,6 +244,80 @@ describe('Ref', function() {
     });
 });
 
+describe('Move', function() {
+    describe('.constructor', function() {
+        it("should set the move properties", function() {
+            const piece = '♟';
+            const from = new Ref(1, 3);
+            const to = new Ref(3, 3);
+            const capture = ' ';
+            const nag = 1;
+            const board = [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ','♟',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♟',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']];
+            const m = new Move(piece, from, to, capture, board, nag);
+            expect(m.piece).to.equal(piece);
+            expect(m.from).to.equal(from);
+            expect(m.to).to.equal(to);
+            expect(m.capture).to.equal(capture);
+            expect(m.board).to.deep.equal(board);
+            expect(m.nag).to.equal(nag);
+        });
+    });
+    describe('#copy', function() {
+        it("should copy the move properties", function() {
+            const piece = '♟';
+            const from = new Ref(1, 3);
+            const to = new Ref(3, 3);
+            const capture = ' ';
+            const nag = 1;
+            const board = [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ','♟',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♟',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']];
+            const src = new Move(piece, from, to, capture, board, nag);
+            const dst = src.copy();
+            expect(dst.piece).to.equal(piece);
+            expect(dst.from).to.equal(from);
+            expect(dst.to).to.equal(to);
+            expect(dst.capture).to.equal(capture);
+            expect(dst.board).to.deep.equal(board);
+            expect(dst.nag).to.equal(nag);
+        });
+    });
+    describe('#diff', function() {
+        it("should return the ref difference", function() {
+            const piece = '♟';
+            const from = new Ref(1, 3);
+            const to = new Ref(3, 3);
+            const capture = ' ';
+            const nag = 1;
+            const board = [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ','♟',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♟',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ','♔',' ',' ',' ']];
+            const m = new Move(piece, from, to, capture, board, nag);
+            expect(m.diff()).to.deep.equal([-2, 0]);
+        });
+    });
+});
+
 describe('Game', function() {
     describe('.constructor', function() {
         it("should initialise the game", function() {
