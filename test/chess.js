@@ -567,10 +567,21 @@ describe('Game', function() {
             // TOOD
         });
         it("should include check indicator", function() {
+            const g = new Game();
+            g.move(new Ref(6, 3), new Ref(4, 3)); // d4
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e6
+            g.move(new Ref(7, 1), new Ref(5, 0)); // Na3
+            g.move(new Ref(0, 5), new Ref(4, 1)); // Bb4+
+            expect(g.getMoveSAN(3)).to.equal('Bb4+');
             // TOOD
         });
         it("should include checkmate indicator", function() {
-            // TOOD
+            const g = new Game();
+            g.move(new Ref(6, 5), new Ref(5, 5)); // f3
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e6
+            g.move(new Ref(6, 6), new Ref(4, 6)); // g4
+            g.move(new Ref(0, 3), new Ref(4, 7)); // Qh4#
+            expect(g.getMoveSAN(3)).to.equal('Qh4#');
         });
         it("should include numeric annotations", function() {
             const g = new Game();
