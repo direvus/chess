@@ -499,6 +499,9 @@ describe('Game', function() {
             const san = g.getMoveSAN(0);
             expect(san).to.equal('Na3');
         });
+        it("should return special notation for castling", function() {
+            // TOOD
+        });
         it("should disambiguate by piece", function() {
             const g = new Game();
             g.move(new Ref(7, 1), new Ref(5, 0)); // Na3
@@ -548,6 +551,26 @@ describe('Game', function() {
             g.move(new Ref(0, 7), new Ref(1, 6));
             const san = g.getMoveSAN(1);
             expect(san).to.equal('Qh8g7');
+        });
+        it("should include captures", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            g.move(new Ref(1, 3), new Ref(3, 3)); // d5
+            g.move(new Ref(4, 4), new Ref(3, 3)); // exd5
+            g.move(new Ref(0, 6), new Ref(2, 5)); // Nf6
+            g.move(new Ref(7, 1), new Ref(5, 0)); // Na3
+            g.move(new Ref(2, 5), new Ref(3, 3)); // Nxd5
+            expect(g.getMoveSAN(2)).to.equal('exd5');
+            expect(g.getMoveSAN(5)).to.equal('Nxd5');
+        });
+        it("should include promotions", function() {
+            // TOOD
+        });
+        it("should include check indicator", function() {
+            // TOOD
+        });
+        it("should include checkmate indicator", function() {
+            // TOOD
         });
         it("should include numeric annotations", function() {
             const g = new Game();
