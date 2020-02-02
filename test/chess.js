@@ -575,7 +575,30 @@ describe('Game', function() {
             expect(g.getMoveSAN(5)).to.equal('Nxd5');
         });
         it("should include promotions", function() {
-            // TOOD
+            // desperado pawn scenario; capture to NW corner
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            g.move(new Ref(1, 3), new Ref(3, 3)); // d5
+            g.move(new Ref(4, 4), new Ref(3, 3)); // exd5
+            g.move(new Ref(1, 2), new Ref(2, 2)); // c6
+            g.move(new Ref(3, 3), new Ref(2, 2)); // dxc6
+            g.move(new Ref(0, 6), new Ref(2, 7)); // Nh6
+            g.move(new Ref(2, 2), new Ref(1, 1)); // cxb7
+            g.move(new Ref(2, 7), new Ref(0, 6)); // Ng8
+            g.move(new Ref(1, 1), new Ref(0, 0)); // bxa8=Q
+            expect(g.getMoveSAN(8)).to.equal('bxa8=Q');
+
+            g.selectTurn(8);
+            g.move(new Ref(1, 1), new Ref(0, 0), 1); // bxa8=N
+            expect(g.getMoveSAN(8)).to.equal('bxa8=N');
+
+            g.selectTurn(8);
+            g.move(new Ref(1, 1), new Ref(0, 0), 2); // bxa8=R
+            expect(g.getMoveSAN(8)).to.equal('bxa8=R');
+
+            g.selectTurn(8);
+            g.move(new Ref(1, 1), new Ref(0, 0), 3); // bxa8=B
+            expect(g.getMoveSAN(8)).to.equal('bxa8=B');
         });
         it("should include check indicator", function() {
             const g = new Game();
