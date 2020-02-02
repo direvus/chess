@@ -461,8 +461,7 @@ export class Game {
             const v = writeTagValuePGN(this.tags[k]);
             result += `[${k} ${v}]` + '\n';
         }
-        result += '\n';
-        let length = 0;
+        let length = 79; // force new line for first move
         let token = '';
         for (let i = 0; i < this.moves.length; i++) {
             if (i % 2 == 0) {

@@ -486,6 +486,14 @@ describe('Game', function() {
             expect(g.board[7][1]).to.equal('♝');
         });
     });
+    describe('#exportPGN', function() {
+        it("should return a single move game correctly", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            const pgn = g.exportPGN();
+            expect(pgn).to.equal(`[Event ""]\n[Site ""]\n[Date ""]\n[Round ""]\n[White ""]\n[Black ""]\n[Result "*"]\n\n1. e4 *\n`);
+        });
+    });
     describe('#getMoveSAN', function() {
         it("should return a simple pawn move", function() {
             const g = new Game();
