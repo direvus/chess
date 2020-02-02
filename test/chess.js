@@ -486,6 +486,56 @@ describe('Game', function() {
             expect(g.board[7][1]).to.equal('♝');
         });
     });
+    describe('#getResult', function() {
+        it("should return null for initial game state", function() {
+            const g = new Game();
+            expect(g.getResult()).to.be.null;
+        });
+        it("should return 0 for black win", function() {
+            const g = new Game();
+            g.move(new Ref(6, 5), new Ref(5, 5)); // f3
+            g.move(new Ref(1, 4), new Ref(2, 4)); // e6
+            g.move(new Ref(6, 6), new Ref(4, 6)); // g4
+            g.move(new Ref(0, 3), new Ref(4, 7)); // Qh4#
+            expect(g.getResult()).to.equal(0);
+        });
+        it("should return 1 for white win", function() {
+            const g = new Game();
+            g.move(new Ref(6, 4), new Ref(4, 4)); // e4
+            g.move(new Ref(1, 5), new Ref(2, 5)); // f6
+            g.move(new Ref(6, 3), new Ref(5, 3)); // d3
+            g.move(new Ref(1, 6), new Ref(3, 6)); // g5
+            g.move(new Ref(7, 3), new Ref(3, 7)); // Qh5#
+            expect(g.getResult()).to.equal(1);
+        });
+        it("should return 0.5 for stalemate", function() {
+            const g = new Game();
+            g.board = [
+                [' ',' ',' ',' ',' ','♝','♞','♜'],
+                [' ',' ',' ',' ','♟',' ','♟','♛'],
+                [' ',' ',' ',' ','♕','♟','♚','♜'],
+                [' ',' ',' ',' ',' ',' ',' ','♟'],
+                [' ',' ',' ',' ',' ',' ',' ','♙'],
+                [' ',' ',' ',' ','♙',' ',' ',' '],
+                ['♙','♙','♙','♙',' ','♙','♙',' '],
+                ['♖','♘','♗',' ','♔','♗','♘','♖']];
+            g.turn = 20;
+            expect(g.getResult()).to.equal(0.5);
+        });
+        it("should return 0.5 for dead position", function() {
+            const g = new Game();
+            g.board = [
+                [' ',' ',' ',' ','♚',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ','♔',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' '],
+                [' ',' ',' ',' ',' ',' ',' ',' ']];
+            expect(g.getResult()).to.equal(0.5);
+        });
+    });
     describe('#exportPGN', function() {
         it("should return a single move game correctly", function() {
             const g = new Game();
