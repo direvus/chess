@@ -29,5 +29,4 @@ The application supports:
 The application currently does not support:
 
 - Game clock / move timing.
-- Under-promotion (the library does support this, but the UI does not).
 - Import/export in formats other than PGN.
