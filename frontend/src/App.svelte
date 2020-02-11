@@ -26,6 +26,10 @@
     let promoteBlackCall = null;
     let rotation = false;
     let autorotate = false;
+    let ws = null;
+    let messageQueue = [];
+    let gameid = null;
+    let hostWhite = true;
     let exportPGN = '';
     let importText = '';
     let message = {
@@ -146,6 +150,73 @@
         }
     }
 
+    function openSocket() {
+        if (ws == null || ws.readyState > 1) {
+            ws = new WebSocket("wss://3xxq2jbj32.execute-api.ap-southeast-2.amazonaws.com/prod/");
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                switch (message.action) {
+                    case "newgame":
+                        gameid = message.id;
+                        break;
+                }
+            };
+            ws.onopen = function(event) {
+                while (messageQueue.length > 0) {
+                    const message = messageQueue.shift();
+                    ws.send(message);
+                }
+            };
+            ws.onclose = function(event) {
+                ws = null;
+            };
+        }
+        return ws;
+    }
+
+    function sendMessage(data) {
+        openSocket();
+        const message = JSON.stringify(data);
+        switch (ws.readyState) {
+            case 0:
+                messageQueue.push(message);
+                break;
+            case 1:
+                ws.send(message);
+                break;
+            case 2:
+            case 3:
+                console.log("Failed to send: socket is not open.");
+                break;
+        }
+    }
+
+    function createInvite() {
+        window.$('#invite_modal').modal('show');
+        sendMessage({
+            action: "newgame",
+            host_plays_white: hostWhite,
+            game: game
+        });
+    }
+
+    function hideInvite() {
+        window.$('#invite_modal').modal('hide');
+    }
+
+    function cancelInvite() {
+        // TODO implement cancel (delete game)
+        hideInvite();
+    }
+
+    function showJoin() {
+        window.$('#join_modal').modal('show');
+    }
+
+    function hideJoin() {
+        window.$('#join_modal').modal('hide');
+    }
+
     function showImport() {
         window.$('#import_modal').modal('show');
     }
@@ -193,6 +264,24 @@
 </script>
 
 <main>
+    <div class="ui modal" id="invite_modal">
+        <i class="close icon"></i>
+        <div class="header">Invite a player to this game</div>
+        <div class="content">
+            <p>Send your opponent the following code:</p>
+            <h1 class="ui center aligned block header {(gameid) ? '' : 'dimmable dimmed'}">
+                {gameid}
+                <div class="ui {(gameid) ? '' : 'active'} dimmer">
+                    <div class="ui {(gameid) ? '' : 'active'} loader"></div>
+                </div>
+            </h1>
+            <p>They can click <strong>"Join game"</strong> and input the code in their own browser to join you.</p>
+        </div>
+        <div class="actions">
+            <div class="ui negative button" on:click={cancelInvite}>Cancel</div>
+        </div>
+    </div>
+
     <div class="ui modal" id="import_modal">
         <i class="close icon"></i>
         <div class="header">Game import</div>
@@ -357,6 +446,12 @@
                     <div class="ui two buttons">
                         <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
                         <div class="ui button" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="ui two buttons">
+                        <div class="ui button" on:click={createInvite}><i class="user plus icon"></i> Invite player</div>
+                        <div class="ui button" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
                     </div>
                 </div>
                 <div class="item">
