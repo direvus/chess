@@ -152,7 +152,7 @@
 
     function openSocket() {
         if (ws == null || ws.readyState > 1) {
-            ws = new WebSocket("wss://3xxq2jbj32.execute-api.ap-southeast-2.amazonaws.com/prod/");
+            ws = new WebSocket("wss://4r1vqir6nj.execute-api.ap-southeast-2.amazonaws.com/prod/");
             ws.onmessage = function(event) {
                 const message = JSON.parse(event.data);
                 switch (message.action) {

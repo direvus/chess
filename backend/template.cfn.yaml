@@ -1,0 +1,235 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Chess backend API
+
+  https://github.com/direvus/chess
+
+  Chess game backend, using a WebSockets API Gateway and a
+  DynamoDB table.
+
+Parameters:
+  TableName:
+    Type: String
+    Default: 'chess'
+    Description: The name of the new DynamoDB table
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+  BucketName:
+    Type: String
+    Description: The name of the S3 bucket containing the Lambda deployment package
+  PackageName:
+    Type: String
+    Default: chess-lambda.zip
+    Description: The S3 key of the Lambda deployment package
+
+Resources:
+  ApiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: chess
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: $connect
+      AuthorizationType: NONE
+      OperationName: ConnectRoute
+      Target: !Sub 'integrations/${ConnectInteg}'
+  ConnectInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Connect Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ConnectFunction.Arn}/invocations'
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      OperationName: DisconnectRoute
+      Target: !Sub 'integrations/${DisconnectInteg}'
+  DisconnectInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Disconnect Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DisconnectFunction.Arn}/invocations'
+  NewGameRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: newgame
+      AuthorizationType: NONE
+      OperationName: NewGameRoute
+      Target: !Sub 'integrations/${NewGameInteg}'
+  NewGameInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: New Game Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NewGameFunction.Arn}/invocations'
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - NewGameRoute
+      - DisconnectRoute
+    Properties:
+      ApiId: !Ref ApiGateway
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: prod
+      Description: Production Stage
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref ApiGateway
+
+  DynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: True
+      TableName: !Ref TableName
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: chess-lambda
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+
+  DynamoPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles: [!Ref LambdaRole]
+      PolicyName: chess-dynamodb-all
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - dynamodb:ListContributorInsights
+              - dynamodb:DescribeReservedCapacityOfferings
+              - dynamodb:ListGlobalTables
+              - dynamodb:ListTables
+              - dynamodb:DescribeReservedCapacity
+              - dynamodb:ListBackups
+              - dynamodb:PurchaseReservedCapacityOfferings
+              - dynamodb:DescribeLimits
+              - dynamodb:ListStreams
+            Resource: "*"
+          - Effect: "Allow"
+            Action: "dynamodb:*"
+            Resource: !GetAtt [DynamoTable, Arn]
+
+  ExecuteApiPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles: [!Ref LambdaRole]
+      PolicyName: chess-execute-api
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - execute-api:*
+            Resource: !Sub 'arn:aws:execute-api:ap-southeast-2:*:${ApiGateway}/*/*/*'
+
+  ConnectFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: connect.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+
+  ConnectPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ConnectFunction
+      Principal: apigateway.amazonaws.com
+
+  DisconnectFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: disconnect.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  DisconnectPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DisconnectFunction
+      Principal: apigateway.amazonaws.com
+
+  NewGameFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: newgame.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  NewGamePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref NewGameFunction
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  WebSocketURI:
+    Description: "The WSS Protocol URI to connect to"
+    Value: !Sub 'wss://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'
