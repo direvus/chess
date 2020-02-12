@@ -200,13 +200,12 @@
         });
     }
 
-    function hideInvite() {
-        window.$('#invite_modal').modal('hide');
-    }
-
     function cancelInvite() {
-        // TODO implement cancel (delete game)
-        hideInvite();
+        sendMessage({
+            action: "cancelgame",
+            id: gameid
+        });
+        window.$('#invite_modal').modal('hide');
     }
 
     function showJoin() {
@@ -265,7 +264,6 @@
 
 <main>
     <div class="ui modal" id="invite_modal">
-        <i class="close icon"></i>
         <div class="header">Invite a player to this game</div>
         <div class="content">
             <p>Send your opponent the following code:</p>
