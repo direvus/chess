@@ -31,6 +31,7 @@ Resources:
       Name: chess
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.action"
+
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -46,6 +47,7 @@ Resources:
       Description: Connect Integration
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ConnectFunction.Arn}/invocations'
+
   DisconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -61,6 +63,7 @@ Resources:
       Description: Disconnect Integration
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DisconnectFunction.Arn}/invocations'
+
   NewGameRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -76,20 +79,29 @@ Resources:
       Description: New Game Integration
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NewGameFunction.Arn}/invocations'
-  Deployment:
-    Type: AWS::ApiGatewayV2::Deployment
-    DependsOn:
-      - ConnectRoute
-      - NewGameRoute
-      - DisconnectRoute
+
+  CancelGameRoute:
+    Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref ApiGateway
+      RouteKey: cancelgame
+      AuthorizationType: NONE
+      OperationName: CancelGameRoute
+      Target: !Sub 'integrations/${CancelGameInteg}'
+  CancelGameInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: New Game Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CancelGameFunction.Arn}/invocations'
+
   Stage:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
       StageName: prod
+      AutoDeploy: true
       Description: Production Stage
-      DeploymentId: !Ref Deployment
       ApiId: !Ref ApiGateway
 
   DynamoTable:
@@ -227,6 +239,31 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref NewGameFunction
+      Principal: apigateway.amazonaws.com
+
+  CancelGameFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: cancelgame.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  CancelGamePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CancelGameFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
