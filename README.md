@@ -28,5 +28,6 @@ The application supports:
 
 The application currently does not support:
 
+- Online multiplayer ... yet!
 - Game clock / move timing.
 - Import/export in formats other than PGN.
