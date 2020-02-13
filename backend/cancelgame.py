@@ -27,7 +27,7 @@ def send(context, connid, data):
     url = 'https://{domainName}/{stage}'.format(**context)
     client = boto3.client('apigatewaymanagementapi', endpoint_url=url)
     client.post_to_connection(
-        ConnectionId=context['connectionId'],
+        ConnectionId=connid,
         Data=json.dumps(data).encode('utf-8'))
 
 

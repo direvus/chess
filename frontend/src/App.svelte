@@ -29,6 +29,8 @@
     let ws = null;
     let messageQueue = [];
     let gameid = null;
+    let joincode = '';
+    let gameHost = false;
     let hostWhite = true;
     let exportPGN = '';
     let importText = '';
@@ -158,6 +160,21 @@
                 switch (message.action) {
                     case "newgame":
                         gameid = message.id;
+                        gameHost = true;
+                        break;
+                    case "joingame":
+                        gameid = message.id;
+                        hostWhite = message.host_plays_white;
+                        gameHost = false;
+                        game = message.game;
+                        hideJoin();
+                        break;
+                    case "hostgame":
+                        gameid = message.id;
+                        hostWhite = message.host_plays_white;
+                        gameHost = true;
+                        game = message.game;
+                        hideInvite();
                         break;
                 }
             };
@@ -205,6 +222,17 @@
             action: "cancelgame",
             id: gameid
         });
+        hideInvite()
+    }
+
+    function joinGame() {
+        sendMessage({
+            action: "joingame",
+            id: joincode
+        });
+    }
+
+    function hideInvite() {
         window.$('#invite_modal').modal('hide');
     }
 
@@ -279,6 +307,22 @@
             <div class="ui negative button" on:click={cancelInvite}>Cancel</div>
         </div>
     </div>
+
+    <div class="ui modal" id="join_modal">
+        <i class="close icon"></i>
+        <div class="header">Join a game</div>
+        <div class="content">
+            <p>The game host will send you a code.  Type it in here!</p>
+            <div class="ui fluid massive input">
+                <input type="text" placeholder="Game code" bind:value={joincode}>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui basic button" on:click={hideJoin}>Dismiss</div>
+            <div class="ui positive button" on:click={joinGame}>Join</div>
+        </div>
+    </div>
+
 
     <div class="ui modal" id="import_modal">
         <i class="close icon"></i>

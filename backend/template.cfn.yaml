@@ -96,6 +96,22 @@ Resources:
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CancelGameFunction.Arn}/invocations'
 
+  JoinGameRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: joingame
+      AuthorizationType: NONE
+      OperationName: JoinGameRoute
+      Target: !Sub 'integrations/${JoinGameInteg}'
+  JoinGameInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: New Game Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JoinGameFunction.Arn}/invocations'
+
   Stage:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
@@ -264,6 +280,31 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref CancelGameFunction
+      Principal: apigateway.amazonaws.com
+
+  JoinGameFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: join.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  JoinGamePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref JoinGameFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
