@@ -10,7 +10,7 @@ import boto3
 
 DYNAMO = boto3.resource('dynamodb')
 TABLE = DYNAMO.Table(os.environ['TABLE_NAME'])
-KEY_CHARS = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789=+'
+KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789+'
 
 
 def generate_id(size=4):
