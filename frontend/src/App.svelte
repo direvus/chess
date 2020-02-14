@@ -1,7 +1,7 @@
 <script>
     import Grid from './Grid.svelte';
     import Message from './Message.svelte';
-    import {Ref, WHITE_PAWN, WHITE_QUEEN, WHITE_KNIGHT, WHITE_ROOK,
+    import {Ref, Move, WHITE_PAWN, WHITE_QUEEN, WHITE_KNIGHT, WHITE_ROOK,
         WHITE_BISHOP, BLACK_PAWN, BLACK_QUEEN, BLACK_KNIGHT, BLACK_ROOK,
         BLACK_BISHOP, readPGN} from './chess.js';
 
@@ -98,6 +98,13 @@
             updateRotation();
             promoteWhiteCall = null;
             promoteBlackCall = null;
+            if (gameid) {
+                sendMessage({
+                    action: "move",
+                    id: gameid,
+                    move: game.moves[game.moves.length - 1]
+                });
+            }
             return move;
         } catch(error) {
             showError(error, "Illegal move");
@@ -152,6 +159,29 @@
         }
     }
 
+    function loadGameFromMessage(message) {
+        const moves = [];
+        for (let i = 0; i < message.moves.length; i++) {
+            const item = message.moves[i];
+            const move = new Move(
+                item.piece,
+                new Ref(item.from.row, item.from.col),
+                new Ref(item.to.row, item.to.col),
+                item.capture,
+                item.board,
+                item.nag
+            );
+            moves.push(move);
+        }
+        game.board = message.board;
+        game.moves = moves;
+        game.turn = message.turn;
+        for (const k in message.tags) {
+            game.tags[k] = message.tags[k];
+        }
+        game = game;
+    }
+
     function openSocket() {
         if (ws == null || ws.readyState > 1) {
             ws = new WebSocket("wss://4r1vqir6nj.execute-api.ap-southeast-2.amazonaws.com/prod/");
@@ -166,15 +196,19 @@
                         gameid = message.id;
                         hostWhite = message.host_plays_white;
                         gameHost = false;
-                        game = message.game;
+                        loadGameFromMessage(message.game);
                         hideJoin();
                         break;
                     case "hostgame":
                         gameid = message.id;
                         hostWhite = message.host_plays_white;
                         gameHost = true;
-                        game = message.game;
+                        loadGameFromMessage(message.game);
                         hideInvite();
+                        break;
+                    case "move":
+                        gameid = message.id;
+                        loadGameFromMessage(message.game);
                         break;
                 }
             };

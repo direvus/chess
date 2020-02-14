@@ -92,7 +92,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref ApiGateway
-      Description: New Game Integration
+      Description: Cancel Game Integration
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CancelGameFunction.Arn}/invocations'
 
@@ -108,9 +108,25 @@ Resources:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref ApiGateway
-      Description: New Game Integration
+      Description: Join Game Integration
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${JoinGameFunction.Arn}/invocations'
+
+  MoveRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: move
+      AuthorizationType: NONE
+      OperationName: MoveRoute
+      Target: !Sub 'integrations/${MoveInteg}'
+  MoveInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Move Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MoveFunction.Arn}/invocations'
 
   Stage:
     Type: AWS::ApiGatewayV2::Stage
@@ -305,6 +321,31 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref JoinGameFunction
+      Principal: apigateway.amazonaws.com
+
+  MoveFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: move.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  MovePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref MoveFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
