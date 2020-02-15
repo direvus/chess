@@ -623,11 +623,13 @@
                         <div class="two wide column">
                             <span class="text center"><big>{move.piece}</big></span>
                         </div>
-                        <div class="six wide column">
+                        <div class="four wide column">
                             {move.from.label} <i class="long arrow alternate right icon"></i> {move.to.label}
                         </div>
-                        <div class="two wide column">
-                            <span class="text center"><big>{move.capture}</big></span>
+                        <div class="three wide column">
+                            {#if move.capture && move.capture != ' '}
+                            <span class="text center"><i class="times icon"></i><big>{move.capture}</big></span>
+                            {/if}
                         </div>
                     </div>
                 </a>
