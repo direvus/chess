@@ -159,6 +159,39 @@
         }
     }
 
+    function receiveMessage(event) {
+        const message = JSON.parse(event.data);
+        switch (message.action) {
+            case "newgame":
+                gameid = message.id;
+                gameHost = true;
+                break;
+            case "cancelgame":
+                gameid = null;
+                gameHost = false;
+                hostWhite = true;
+                break;
+            case "joingame":
+                gameid = message.id;
+                gameHost = false;
+                hostWhite = message.host_plays_white;
+                loadGameFromMessage(message.game);
+                hideJoin();
+                break;
+            case "hostgame":
+                gameid = message.id;
+                gameHost = true;
+                hostWhite = message.host_plays_white;
+                loadGameFromMessage(message.game);
+                hideInvite();
+                break;
+            case "move":
+                gameid = message.id;
+                loadGameFromMessage(message.game);
+                break;
+        }
+    }
+
     function loadGameFromMessage(message) {
         const moves = [];
         for (let i = 0; i < message.moves.length; i++) {
@@ -185,33 +218,7 @@
     function openSocket() {
         if (ws == null || ws.readyState > 1) {
             ws = new WebSocket("wss://4r1vqir6nj.execute-api.ap-southeast-2.amazonaws.com/prod/");
-            ws.onmessage = function(event) {
-                const message = JSON.parse(event.data);
-                switch (message.action) {
-                    case "newgame":
-                        gameid = message.id;
-                        gameHost = true;
-                        break;
-                    case "joingame":
-                        gameid = message.id;
-                        hostWhite = message.host_plays_white;
-                        gameHost = false;
-                        loadGameFromMessage(message.game);
-                        hideJoin();
-                        break;
-                    case "hostgame":
-                        gameid = message.id;
-                        hostWhite = message.host_plays_white;
-                        gameHost = true;
-                        loadGameFromMessage(message.game);
-                        hideInvite();
-                        break;
-                    case "move":
-                        gameid = message.id;
-                        loadGameFromMessage(message.game);
-                        break;
-                }
-            };
+            ws.onmessage = receiveMessage;
             ws.onopen = function(event) {
                 while (messageQueue.length > 0) {
                     const message = messageQueue.shift();
@@ -257,6 +264,9 @@
             id: gameid
         });
         hideInvite()
+        gameid = null;
+        gameHost = false;
+        hostWhite = true;
     }
 
     function joinGame() {
