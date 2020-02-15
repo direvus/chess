@@ -75,6 +75,16 @@
         window.$('#message_modal').modal('show');
     }
 
+    function showSuccess(text, header='') {
+        message = {
+            "level": "success",
+            "icon": "check circle",
+            "header": header,
+            "message": text
+        };
+        window.$('#message_modal').modal('show');
+    }
+
     function doMove(fromCol, fromRow, toCol, toRow, promotion=null) {
         const from = new Ref(fromCol, fromRow);
         const to = new Ref(toCol, toRow);
@@ -193,22 +203,32 @@
 
     function receiveMessage(event) {
         const message = JSON.parse(event.data);
+        let side = null;
+        let success = null;
         switch (message.action) {
             case "newgame":
                 gameid = message.id;
                 gameHost = true;
+                joincode = null;
                 break;
             case "cancelgame":
                 gameid = null;
+                joincode = null;
                 gameHost = false;
                 hostWhite = true;
                 break;
             case "joingame":
+                joincode = null;
                 gameid = message.id;
                 gameHost = false;
                 hostWhite = message.host_plays_white;
                 loadGameFromMessage(message.game);
                 hideJoin();
+
+                side = (hostWhite) ? 'Black' : 'White';
+                success = "OK!  You have joined the game.  You are playing " + side + ".";
+
+                showMessage(success, "Game joined");
                 break;
             case "hostgame":
                 gameid = message.id;
@@ -216,6 +236,15 @@
                 hostWhite = message.host_plays_white;
                 loadGameFromMessage(message.game);
                 hideInvite();
+
+                side = (hostWhite) ? 'White' : 'Black';
+                let tagname = (hostWhite) ? 'Black' : 'White';
+                let guest = 'A player';
+                if (game.tags[tagname]) {
+                    guest = game.tags[tagname];
+                }
+                success = "OK!  " + guest + " has joined the game.  You are playing " + side + ".";
+                showMessage(success, "Player joined");
                 break;
             case "move":
                 gameid = message.id;
