@@ -308,6 +308,7 @@
     function joinGame() {
         sendMessage({
             action: "joingame",
+            name: playerName,
             id: joincode
         });
     }
@@ -403,11 +404,20 @@
 
     <div class="ui modal" id="join_modal">
         <i class="close icon"></i>
-        <div class="header">Join a game</div>
+        <div class="header">Join an online game</div>
         <div class="content">
-            <p>The game host will send you a code.  Type it in here!</p>
-            <div class="ui fluid massive input">
-                <input type="text" placeholder="Game code" bind:value={joincode}>
+            <div class="ui form">
+                <div class="field">
+                    <label>Your name</label>
+                    <input type="text" placeholder="Your name" bind:value={playerName}>
+                </div>
+                <p>The game host will send you a code.  Type it in here!</p>
+                <div class="field">
+                    <label>Game code</label>
+                    <div class="ui massive input">
+                        <input type="text" placeholder="Game code" bind:value={joincode}>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="actions">

@@ -11,15 +11,24 @@ DYNAMO = boto3.resource('dynamodb')
 TABLE = DYNAMO.Table(os.environ['TABLE_NAME'])
 
 
-def join_game(connid, gameid):
+def join_game(connid, gameid, playername=None):
     item = TABLE.get_item(Key={'id': gameid})['Item']
     if item['guest'] and item['guest'] != connid:
         return None
 
+    game = item['game']
+    if playername:
+        if item['host_plays_white']:
+            game['tags']['Black'] = playername
+        else:
+            game['tags']['White'] = playername
+
     res = TABLE.update_item(
         Key={'id': gameid},
-        UpdateExpression="set guest = :guest",
-        ExpressionAttributeValues={':guest': connid},
+        UpdateExpression="set guest = :guest, game = :game",
+        ExpressionAttributeValues={
+            ':guest': connid,
+            ':game': game},
         ReturnValues='ALL_NEW')
     return res['Attributes']
 
@@ -36,8 +45,15 @@ def lambda_handler(event, context):
     print(event)
     ctx = event['requestContext']
     body = json.loads(event['body'])
+    name = None
 
-    item = join_game(ctx['connectionId'], body['id'])
+    if 'name' in body:
+        name = str(body['name'])
+
+    item = join_game(
+        ctx['connectionId'],
+        body['id'],
+        name)
     if item:
         game = item['game']
         post = {
