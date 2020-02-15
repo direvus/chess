@@ -1319,6 +1319,28 @@ export function readPGN(source) {
     return game;
 }
 
+export function getPGNDate(date=null) {
+    /*
+     * Return the given date as a string in the PGN YYYY.MM.DD format.
+     *
+     * If a date is not given, use today's date in the local timezone.
+     */
+    if (!date) {
+        date = new Date();
+    }
+    const pad = x => {
+        x = x.toString();
+        if (x.length < 2) {
+            x = '0' + x;
+        }
+        return x;
+    }
+    return (
+        date.getFullYear() + '.' +
+        pad(date.getMonth() + 1) + '.' +
+        pad(date.getDate()));
+}
+
 export function parseSAN(board, moves, text) {
     /*
      * Parse and validate a move in Standard Algebraic Notation (SAN).

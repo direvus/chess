@@ -1,9 +1,12 @@
 <script>
     import Grid from './Grid.svelte';
     import Message from './Message.svelte';
-    import {Ref, Move, WHITE_PAWN, WHITE_QUEEN, WHITE_KNIGHT, WHITE_ROOK,
-        WHITE_BISHOP, BLACK_PAWN, BLACK_QUEEN, BLACK_KNIGHT, BLACK_ROOK,
-        BLACK_BISHOP, readPGN} from './chess.js';
+    import {Ref, Move,
+        WHITE_PAWN, WHITE_KING, WHITE_QUEEN,
+        WHITE_KNIGHT, WHITE_ROOK, WHITE_BISHOP,
+        BLACK_PAWN, BLACK_KING, BLACK_QUEEN,
+        BLACK_KNIGHT, BLACK_ROOK, BLACK_BISHOP,
+        readPGN, getPGNDate} from './chess.js';
 
     export let game;
 
@@ -32,6 +35,7 @@
     let joincode = '';
     let gameHost = false;
     let hostWhite = true;
+    let playerName = '';
     let exportPGN = '';
     let importText = '';
     let message = {
@@ -278,7 +282,11 @@
     }
 
     function createInvite() {
+        window.$('#newgame_modal').modal('hide');
         window.$('#invite_modal').modal('show');
+        const playerKey = (hostWhite) ? 'White' : 'Black';
+        game.tags[playerKey] = playerName;
+        game.tags['Date'] = getPGNDate();
         sendMessage({
             action: "newgame",
             host_plays_white: hostWhite,
@@ -302,6 +310,14 @@
             action: "joingame",
             id: joincode
         });
+    }
+
+    function showNewGame() {
+        window.$('#newgame_modal').modal('show');
+    }
+
+    function hideNewGame() {
+        window.$('#newgame_modal').modal('hide');
     }
 
     function hideInvite() {
@@ -359,6 +375,11 @@
         if (index >= 0 && index < PROMOTIONS_BLACK.length) {
             promotionBlack = index;
         }
+    }
+
+    function setHostWhite(white=true) {
+        hostWhite = white;
+        return hostWhite;
     }
 </script>
 
@@ -427,6 +448,39 @@
         <Message {...message}/>
         <div class="actions">
             <div class="ui primary button" on:click={hideMessage}>Dismiss</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="newgame_modal">
+        <i class="close icon"></i>
+        <div class="header">
+            Start a new online game
+        </div>
+        <div class="content">
+            <div class="ui form">
+                <h4 class="ui dividing header">Player details</h4>
+                <div class="field">
+                    <label>Your name</label>
+                    <input type="text" placeholder="Your name" bind:value={playerName}>
+                </div>
+                <div class="field">
+                    <label>Your side</label>
+                    <div class="ui massive two buttons">
+                        <div class="ui button {(hostWhite) ? 'active': ''}" on:click={() => setHostWhite(true)}>
+                            <div>{WHITE_KING}</div>
+                            <div><small>White</small></div>
+                        </div>
+                        <div class="ui button {(hostWhite) ? '': 'active'}" on:click={() => setHostWhite(false)}>
+                            <div>{BLACK_KING}</div>
+                            <div><small>Black</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui basic button" on:click={hideNewGame}>Cancel</div>
+            <div class="ui positive button" on:click={createInvite}>Start game</div>
         </div>
     </div>
 
@@ -565,7 +619,7 @@
                 </div>
                 <div class="item">
                     <div class="ui two buttons">
-                        <div class="ui button" on:click={createInvite}><i class="user plus icon"></i> Invite player</div>
+                        <div class="ui button" on:click={showNewGame}><i class="user plus icon"></i> Host game</div>
                         <div class="ui button" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
                     </div>
                 </div>
