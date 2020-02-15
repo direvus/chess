@@ -122,13 +122,17 @@
     }
 
     function selectTurn(turn) {
+        if (gameid) {
+            showError("You can't go back to an earlier move while playing online.  You will be able to traverse the move history when the game has ended.", "Move history not available");
+            return;
+        }
         game.selectTurn(turn);
         game = game;
         updateRotation();
     }
 
     function goBack() {
-        if (game.turn > 2) {
+        if (game.turn > 1) {
             selectTurn(game.turn - 2);
         }
         updateRotation();
@@ -553,10 +557,13 @@
                     </div>
                 </div>
                 <div class="item">
+                    {#if gameid}
+                    {:else}
                     <div class="ui two buttons">
-                        <div class="ui button" on:click={goBack}><i class="step backward icon"></i> Back</div>
-                        <div class="ui button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
+                        <div class="ui {(game.turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</div>
+                        <div class="ui {(game.turn == game.moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
                     </div>
+                    {/if}
                 </div>
                 <div class="item">
                     <div class="ui two huge buttons">
