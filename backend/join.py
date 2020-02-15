@@ -43,6 +43,7 @@ def lambda_handler(event, context):
         post = {
             'action': 'hostgame',
             'id': item['id'],
+            'host_plays_white': item['host_plays_white'],
             'game': {
                 'board': game['board'],
                 'turn': int(game['turn']),

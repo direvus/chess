@@ -121,6 +121,30 @@
         window.$('#edit_modal').modal('show');
     }
 
+    function playerSide() {
+        /*
+         * Return the player's side.
+         *
+         * In an online game, return 1 if we are playing white, 0 if we 
+         * are playing black.  This function is not applicable in offline
+         * mode.
+         */
+        return (hostWhite == gameHost);
+    }
+
+    function isPlayerTurn() {
+        /*
+         * Return whether it is the player's turn.
+         *
+         * Always returns true for offline games.  For online games, return
+         * true if it is the player's turn, false otherwise.
+         */
+        if (gameid == null) {
+            return true;
+        }
+        return (playerSide() == (game.turn % 2));
+    }
+
     function selectTurn(turn) {
         if (gameid) {
             showError("You can't go back to an earlier move while playing online.  You will be able to traverse the move history when the game has ended.", "Move history not available");
@@ -528,6 +552,7 @@
                 {cols}
                 {rotation}
                 {rotateBoard}
+                {isPlayerTurn}
                 {doMove} />
         </div>
         <div class="five wide column">

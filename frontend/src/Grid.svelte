@@ -9,6 +9,7 @@
     export let rotation;
     export let doMove;
     export let rotateBoard;
+    export let isPlayerTurn;
 
     const ROW_LABELS = ['8', '7', '6', '5', '4', '3', '2', '1'];
     const COL_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -17,6 +18,9 @@
     let row = -1;
 
     function clickCell(r, c) {
+        if (!isPlayerTurn()) {
+            return;
+        }
         if (row == r && col == c) {
             row = -1;
             col = -1;
