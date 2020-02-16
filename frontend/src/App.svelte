@@ -1,6 +1,9 @@
 <script>
     import Grid from './Grid.svelte';
+    import Menu from './Menu.svelte';
+    import Status from './Status.svelte';
     import Message from './Message.svelte';
+
     import {Ref, Move,
         WHITE_PAWN, WHITE_KING, WHITE_QUEEN,
         WHITE_KNIGHT, WHITE_ROOK, WHITE_BISHOP,
@@ -221,7 +224,7 @@
                 side = (playerSide) ? 'White' : 'Black';
                 success = "OK!  You have joined the game.  You are playing " + side + ".";
 
-                showMessage(success, "Game joined");
+                showSuccess(success, "Game joined");
                 break;
             case "hostgame":
                 gameid = message.id;
@@ -238,12 +241,29 @@
                     guest = game.tags[tagname];
                 }
                 success = "OK!  " + guest + " has joined the game.  You are playing " + side + ".";
-                showMessage(success, "Player joined");
+                showSuccess(success, "Player joined");
                 break;
             case "move":
                 gameid = message.id;
                 loadGameFromMessage(message.game);
                 break;
+            case "resign":
+                receiveResignation(message);
+                break;
+        }
+    }
+
+    function receiveResignation(message) {
+        game.result = message.result;
+        game.tags["Result"] = message.tag;
+        gameid = null;
+        gameHost = false;
+        game = game;
+        const resigned = (game.result) ? 'Black' : 'White';
+        if (game.result == playerSide) {
+            showSuccess("Your opponent has resigned.  You win the game!  Congratulations.", resigned + " resigns");
+        } else {
+            showMessage("You have resigned.  Your opponent wins!  Thanks for playing.", resigned + " resigns");
         }
     }
 
@@ -344,6 +364,13 @@
         });
     }
 
+    function resignGame() {
+        sendMessage({
+            action: "resign",
+            id: gameid
+        });
+    }
+
     function showNewGame() {
         window.$('#newgame_modal').modal('show');
     }
@@ -362,6 +389,14 @@
 
     function hideJoin() {
         window.$('#join_modal').modal('hide');
+    }
+
+    function showResign() {
+        window.$('#resign_modal').modal('show');
+    }
+
+    function hideResign() {
+        window.$('#resign_modal').modal('hide');
     }
 
     function showImport() {
@@ -416,49 +451,21 @@
 </script>
 
 <main>
-    <div class="ui fixed inverted menu">
-        <div class="ui container">
-            <div class="header item">
-                ♟ &emsp; Chess
-            </div>
-            <div class="ui simple dropdown item">
-                <i class="cog icon"></i> Game
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    <div class="header">Offline</div>
-                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={resetGame}><i class="star outline icon"></i> New game</div>
-                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
-                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={showImport}><i class="upload icon"></i> Import from PGN</div>
-                    <div class="divider"></div>
-                    <div class="header">Online</div>
-                    <div class="item {(gameid || game.result != null) ? 'disabled' : ''}" on:click={showNewGame}><i class="user plus icon"></i> Host game</div>
-                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
-                    <div class="divider"></div>
-                    <div class="header">Export</div>
-                    <div class="item" on:click={exportGame}><i class="download icon"></i> Export as PGN</div>
-                </div>
-            </div>
-            <div class="ui simple dropdown item">
-                <i class="eye icon"></i> View
-                <i class="dropdown icon"></i>
-                <div class="menu">
-                    <div class="item" on:click={rotateBoard}><i class="sync alternate icon"></i>Rotate board</div>
-                    <div class="divider"></div>
-                    <div class="item">
-                        <div class="ui toggle checkbox">
-                            <input type="checkbox" name="autorotate" bind:checked={autorotate}>
-                            <label>Rotate automatically</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {#if game.tags['White'] || game.tags['Black']}
-            <div class="item">
-                {game.tags['White'] || '?'}&nbsp;<em>v.</em>&nbsp;{game.tags['Black'] || '?'}
-            </div>
-            {/if}
-        </div>
-    </div>
+    <Menu
+        result={game.result}
+        white={game.tags['White']}
+        black={game.tags['Black']}
+        {gameid}
+        {autorotate}
+        {resetGame}
+        {editGame}
+        {showImport}
+        {showNewGame}
+        {showJoin}
+        {showResign}
+        {exportGame}
+        {rotateBoard}
+        />
 
     <div class="ui modal" id="invite_modal">
         <div class="header">Invite a player to this game</div>
@@ -498,6 +505,18 @@
         <div class="actions">
             <div class="ui basic button" on:click={hideJoin}>Dismiss</div>
             <div class="ui positive button" on:click={joinGame}>Join</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="resign_modal">
+        <i class="close icon"></i>
+        <div class="header">Resign the game</div>
+        <div class="content">
+            <p>Would you like to resign from this game?</p>
+        </div>
+        <div class="actions">
+            <div class="ui basic button" on:click={hideResign}>Cancel</div>
+            <div class="ui positive button" on:click={resignGame}>Resign</div>
         </div>
     </div>
 
@@ -684,67 +703,16 @@
                 {doMove} />
         </div>
         <div class="four wide computer only column" style="margin-top: 8ex;">
-            <div class="ui fluid vertical menu">
-                <div class="item">
-                    {#if game.result == null}
-                    <div class="ui fluid steps">
-                        <div class="step">Turn&emsp;<strong>{Math.ceil(game.turn / 2)}</strong></div>
-                        <div class="active step">To play&emsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong></div>
-                    </div>
-                    <div class="ui two huge buttons">
-                        <div class="ui {(game.turn % 2 == 1) ? 'active' : 'disabled'} button" title="White"><big>{WHITE_PAWN}</big></div>
-                        <div class="ui {(game.turn % 2 == 0) ? 'active' : 'disabled'} button" title="Black"><big>{BLACK_PAWN}</big></div>
-                    </div>
-                    {:else}
-                    <div class="ui inverted {(game.result != 0.5 && playerSide != null) ? ((game.result == playerSide) ? 'green' : 'red') : ''} segment">
-                        Game over&emsp;
-                        {#if game.result == 0.5}
-                        <i class="balance scale icon"></i> <strong>Draw</strong>
-                        {:else}
-                            {#if playerSide != null}
-                                {#if game.result == playerSide}
-                                <i class="trophy icon"></i>
-                                {:else}
-                                <i class="flag outline icon"></i>
-                                {/if}
-                            {/if}
-                            <strong>{(game.result == 1) ? 'White' : 'Black'} wins</strong>
-                        {/if}
-                    </div>
-                    {/if}
-                </div>
-                {#if gameid = null}
-                <div class="item">
-                    <div class="ui two buttons">
-                        <div class="ui {(game.turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</div>
-                        <div class="ui {(game.turn == game.moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
-                    </div>
-                </div>
-                {/if}
-
-                {#each game.moves as move, i}
-                <a href="#self" class="item {(game.turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
-                    <div class="ui grid">
-                        <div class="two wide column">
-                            {#if i % 2 == 0}
-                            <span>{Math.floor(i / 2) + 1}.</span>
-                            {/if}
-                        </div>
-                        <div class="two wide column">
-                            <span class="text center"><big>{move.piece}</big></span>
-                        </div>
-                        <div class="eight wide column">
-                            {move.from.label} <i class="long arrow alternate right icon"></i> {move.to.label}
-                        </div>
-                        <div class="four wide column">
-                            {#if move.capture && move.capture != ' '}
-                            <span class="text center"><i class="times icon"></i><big>{move.capture}</big></span>
-                            {/if}
-                        </div>
-                    </div>
-                </a>
-                {/each}
-            </div>
+            <Status
+                turn={game.turn}
+                result={game.result}
+                moves={game.moves}
+                side={playerSide}
+                {gameid}
+                {goBack}
+                {goForward}
+                {selectTurn}
+                />
         </div>
     </div>
 </main>
