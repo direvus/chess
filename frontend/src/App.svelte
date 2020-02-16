@@ -414,6 +414,50 @@
 </script>
 
 <main>
+    <div class="ui fixed inverted menu">
+        <div class="ui container">
+            <div class="header item">
+                ♟ &emsp; Chess
+            </div>
+            <div class="ui simple dropdown item">
+                <i class="cog icon"></i> Game
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    <div class="header">Offline</div>
+                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={resetGame}><i class="star outline icon"></i> New game</div>
+                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
+                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={showImport}><i class="upload icon"></i> Import from PGN</div>
+                    <div class="divider"></div>
+                    <div class="header">Online</div>
+                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={showNewGame}><i class="user plus icon"></i> Host game</div>
+                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
+                    <div class="divider"></div>
+                    <div class="header">Export</div>
+                    <div class="item" on:click={exportGame}><i class="download icon"></i> Export as PGN</div>
+                </div>
+            </div>
+            <div class="ui simple dropdown item">
+                <i class="eye icon"></i> View
+                <i class="dropdown icon"></i>
+                <div class="menu">
+                    <div class="item" on:click={rotateBoard}><i class="sync alternate icon"></i>Rotate board</div>
+                    <div class="divider"></div>
+                    <div class="item">
+                        <div class="ui toggle checkbox">
+                            <input type="checkbox" name="autorotate" bind:checked={autorotate}>
+                            <label>Rotate automatically</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {#if game.tags['White'] || game.tags['Black']}
+            <div class="item">
+                {game.tags['White'] || '?'}&nbsp;<em>v.</em>&nbsp;{game.tags['Black'] || '?'}
+            </div>
+            {/if}
+        </div>
+    </div>
+
     <div class="ui modal" id="invite_modal">
         <div class="header">Invite a player to this game</div>
         <div class="content">
@@ -454,7 +498,6 @@
             <div class="ui positive button" on:click={joinGame}>Join</div>
         </div>
     </div>
-
 
     <div class="ui modal" id="import_modal">
         <i class="close icon"></i>
@@ -626,18 +669,8 @@
         </div>
     </div>
 
-    <div class="ui container">
-        <h1 class="ui header">
-            {("Event" in game.tags && game.tags["Event"]) ? game.tags["Event"] : "Unnamed game"}
-        </h1>
-        <h2 class="ui header">
-            {("White" in game.tags && game.tags["White"] && "Black" in game.tags && game.tags["Black"]) ? game.tags["White"] + " vs. " + game.tags["Black"] : ''}<br/>
-            {("Date" in game.tags && game.tags["Date"]) ? game.tags["Date"] : ''}
-        </h2>
-    </div>
-
     <div class="ui grid">
-        <div class="eleven wide column">
+        <div class="twelve wide column">
             <Grid
                 board={game.board}
                 side={game.turn % 2 != 0}
@@ -648,46 +681,9 @@
                 {isPlayerTurn}
                 {doMove} />
         </div>
-        <div class="five wide column">
+        <div class="four wide computer only column" style="margin-top: 8ex;">
             <div class="ui fluid vertical menu">
                 <div class="item">
-                    <div class="ui two buttons">
-                        <div class="ui button" on:click={resetGame}><i class="plus icon"></i> New game</div>
-                        <div class="ui button" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="ui two buttons">
-                        <div class="ui button" on:click={showNewGame}><i class="user plus icon"></i> Host game</div>
-                        <div class="ui button" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="ui two buttons">
-                        <div class="ui button" on:click={showImport}><i class="upload icon"></i> Import PGN</div>
-                        <div class="ui button" on:click={exportGame}><i class="download icon"></i> Export PGN</div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="ui toggle checkbox">
-                        <input type="checkbox" name="autorotate" bind:checked={autorotate}>
-                        <label>Rotate automatically</label>
-                    </div>
-                </div>
-                <div class="item">
-                    {#if gameid}
-                    {:else}
-                    <div class="ui two buttons">
-                        <div class="ui {(game.turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</div>
-                        <div class="ui {(game.turn == game.moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
-                    </div>
-                    {/if}
-                </div>
-                <div class="item">
-                    <div class="ui two huge buttons">
-                        <div class="ui {(game.turn % 2 == 1) ? 'primary' : ''} button" title="White"><big>{WHITE_PAWN}</big></div>
-                        <div class="ui {(game.turn % 2 == 0) ? 'primary' : ''} button" title="Black"><big>{BLACK_PAWN}</big></div>
-                    </div>
                     <div class="ui fluid steps">
                         <div
                             class="step">Turn&emsp;<strong>{Math.ceil(game.turn / 2)}</strong></div>
@@ -703,6 +699,19 @@
                             {/if}
                         </div>
                     </div>
+                    <div class="ui two huge buttons">
+                        <div class="ui {(game.turn % 2 == 1) ? 'positive' : 'disabled'} button" title="White"><big>{WHITE_PAWN}</big></div>
+                        <div class="ui {(game.turn % 2 == 0) ? 'positive' : 'disabled'} button" title="Black"><big>{BLACK_PAWN}</big></div>
+                    </div>
+                </div>
+                <div class="item">
+                    {#if gameid}
+                    {:else}
+                    <div class="ui two buttons">
+                        <div class="ui {(game.turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</div>
+                        <div class="ui {(game.turn == game.moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
+                    </div>
+                    {/if}
                 </div>
 
                 {#each game.moves as move, i}
@@ -716,10 +725,10 @@
                         <div class="two wide column">
                             <span class="text center"><big>{move.piece}</big></span>
                         </div>
-                        <div class="four wide column">
+                        <div class="eight wide column">
                             {move.from.label} <i class="long arrow alternate right icon"></i> {move.to.label}
                         </div>
-                        <div class="three wide column">
+                        <div class="four wide column">
                             {#if move.capture && move.capture != ' '}
                             <span class="text center"><i class="times icon"></i><big>{move.capture}</big></span>
                             {/if}
