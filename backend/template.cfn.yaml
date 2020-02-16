@@ -128,6 +128,22 @@ Resources:
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MoveFunction.Arn}/invocations'
 
+  ResignRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: resign
+      AuthorizationType: NONE
+      OperationName: ResignRoute
+      Target: !Sub 'integrations/${ResignInteg}'
+  ResignInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Resign Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResignFunction.Arn}/invocations'
+
   Stage:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
@@ -346,6 +362,31 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref MoveFunction
+      Principal: apigateway.amazonaws.com
+
+  ResignFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: resign.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  ResignPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ResignFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
