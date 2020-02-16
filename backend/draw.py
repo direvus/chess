@@ -23,8 +23,8 @@ def draw_game(connid, gameid, value):
 
     res = TABLE.update_item(
         Key={'id': gameid},
-        UpdateExpression="SET #draw = :value",
-        ExpressionAttributeValues={'#draw': attr, ':value': value},
+        UpdateExpression="SET {} = :value".format(attr),
+        ExpressionAttributeValues={':value': value},
         ReturnValues='ALL_NEW')
     return res['Attributes']
 
