@@ -286,6 +286,7 @@ export class Game {
                 this.board = copyBoard(INITIAL_BOARD);
             }
             this.result = this.getResult();
+            this.updateResultTag();
         }
     }
 
@@ -324,6 +325,7 @@ export class Game {
             this.moves = [...pastMoves, move];
             this.turn += 1;
             this.result = this.getResult();
+            this.updateResultTag();
 
             return true;
         } else {
@@ -376,6 +378,27 @@ export class Game {
             }
         }
         return null;
+    }
+
+    updateResultTag() {
+        /*
+         * Update the Result tag, based on the current game result.
+         *
+         * The Result tag is set to one of the following four values:
+         *   *: the game is ongoing or incomplete
+         *   0-1: black wins
+         *   1-0: white wins
+         *   1/2-1/2: a draw
+         */
+        if (this.result == null) {
+            this.tags['Result'] = '*';
+        } else if (this.result == 0) {
+            this.tags['Result'] = '0-1';
+        } else if (this.result == 1) {
+            this.tags['Result'] = '1-0';
+        } else {
+            this.tags['Result'] = '1/2-1/2';
+        }
     }
 
     getMoveSAN(index) {
@@ -478,14 +501,7 @@ export class Game {
             token = '';
         }
 
-        let end = '*';
-        if (this.result == 0) {
-            end = '0-1';
-        } else if (this.result == 1) {
-            end = '1-0';
-        } else if (this.result > 0 && this.result < 1) {
-            end = '1/2-1/2';
-        }
+        const end = this.tags['Result'];
         if (length + end.length < 78) {
             result += ' ' + end;
         } else {

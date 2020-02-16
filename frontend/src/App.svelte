@@ -270,6 +270,7 @@
         const result = game.getResult();
         if (result != null) {
             game.result = result;
+            game.updateResultTag();
             gameid = null;
             gameHost = false;
         }
