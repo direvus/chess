@@ -35,6 +35,7 @@
     let joincode = '';
     let gameHost = false;
     let hostWhite = true;
+    let playerSide = null;
     let playerName = '';
     let exportPGN = '';
     let importText = '';
@@ -128,22 +129,13 @@
     function resetGame() {
         game.initialise();
         game = game;
+        gameid = null;
+        gameHost = false;
         updateRotation();
     }
 
     function editGame() {
         window.$('#edit_modal').modal('show');
-    }
-
-    function playerSide() {
-        /*
-         * Return the player's side.
-         *
-         * In an online game, return 1 if we are playing white, 0 if we 
-         * are playing black.  This function is not applicable in offline
-         * mode.
-         */
-        return (hostWhite == gameHost);
     }
 
     function isPlayerTurn() {
@@ -156,7 +148,7 @@
         if (gameid == null) {
             return true;
         }
-        return (playerSide() == (game.turn % 2));
+        return (playerSide == (game.turn % 2));
     }
 
     function selectTurn(turn) {
@@ -215,17 +207,18 @@
                 gameid = null;
                 joincode = null;
                 gameHost = false;
-                hostWhite = true;
+                playerSide = null;
                 break;
             case "joingame":
                 joincode = null;
                 gameid = message.id;
                 gameHost = false;
                 hostWhite = message.host_plays_white;
+                playerSide = (hostWhite) ? 0 : 1;
                 loadGameFromMessage(message.game);
                 hideJoin();
 
-                side = (hostWhite) ? 'Black' : 'White';
+                side = (playerSide) ? 'White' : 'Black';
                 success = "OK!  You have joined the game.  You are playing " + side + ".";
 
                 showMessage(success, "Game joined");
@@ -234,11 +227,12 @@
                 gameid = message.id;
                 gameHost = true;
                 hostWhite = message.host_plays_white;
+                playerSide = (hostWhite) ? 1 : 0;
                 loadGameFromMessage(message.game);
                 hideInvite();
 
-                side = (hostWhite) ? 'White' : 'Black';
-                let tagname = (hostWhite) ? 'Black' : 'White';
+                side = (playerSide) ? 'White' : 'Black';
+                let tagname = (playerSide) ? 'Black' : 'White';
                 let guest = 'A player';
                 if (game.tags[tagname]) {
                     guest = game.tags[tagname];
@@ -272,6 +266,12 @@
         game.turn = message.turn;
         for (const k in message.tags) {
             game.tags[k] = message.tags[k];
+        }
+        const result = game.getResult();
+        if (result != null) {
+            game.result = result;
+            gameid = null;
+            gameHost = false;
         }
         game = game;
     }
@@ -332,6 +332,7 @@
         gameid = null;
         gameHost = false;
         hostWhite = true;
+        playerSide = null;
     }
 
     function joinGame() {
@@ -429,7 +430,7 @@
                     <div class="item {(gameid) ? 'disabled' : ''}" on:click={showImport}><i class="upload icon"></i> Import from PGN</div>
                     <div class="divider"></div>
                     <div class="header">Online</div>
-                    <div class="item {(gameid) ? 'disabled' : ''}" on:click={showNewGame}><i class="user plus icon"></i> Host game</div>
+                    <div class="item {(gameid || game.result != null) ? 'disabled' : ''}" on:click={showNewGame}><i class="user plus icon"></i> Host game</div>
                     <div class="item {(gameid) ? 'disabled' : ''}" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
                     <div class="divider"></div>
                     <div class="header">Export</div>
@@ -684,35 +685,41 @@
         <div class="four wide computer only column" style="margin-top: 8ex;">
             <div class="ui fluid vertical menu">
                 <div class="item">
+                    {#if game.result == null}
                     <div class="ui fluid steps">
-                        <div
-                            class="step">Turn&emsp;<strong>{Math.ceil(game.turn / 2)}</strong></div>
-                        <div class="active step">
-                            {#if game.result == 0}
-                            Game over&emsp;<strong>Black wins</strong>
-                            {:else if game.result == 1}
-                            Game over&emsp<strong>White wins</strong>
-                            {:else if game.result == 0.5}
-                            Game over&emsp<strong>Draw</strong>
-                            {:else}
-                            To play&emsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong>
-                            {/if}
-                        </div>
+                        <div class="step">Turn&emsp;<strong>{Math.ceil(game.turn / 2)}</strong></div>
+                        <div class="active step">To play&emsp;<strong>{(game.turn % 2) ? 'White' : 'Black'}</strong></div>
                     </div>
                     <div class="ui two huge buttons">
-                        <div class="ui {(game.turn % 2 == 1) ? 'positive' : 'disabled'} button" title="White"><big>{WHITE_PAWN}</big></div>
-                        <div class="ui {(game.turn % 2 == 0) ? 'positive' : 'disabled'} button" title="Black"><big>{BLACK_PAWN}</big></div>
+                        <div class="ui {(game.turn % 2 == 1) ? 'active' : 'disabled'} button" title="White"><big>{WHITE_PAWN}</big></div>
+                        <div class="ui {(game.turn % 2 == 0) ? 'active' : 'disabled'} button" title="Black"><big>{BLACK_PAWN}</big></div>
                     </div>
-                </div>
-                <div class="item">
-                    {#if gameid}
                     {:else}
+                    <div class="ui inverted {(game.result != 0.5 && playerSide != null) ? ((game.result == playerSide) ? 'green' : 'red') : ''} segment">
+                        Game over&emsp;
+                        {#if game.result == 0.5}
+                        <i class="balance scale icon"></i> <strong>Draw</strong>
+                        {:else}
+                            {#if playerSide != null}
+                                {#if game.result == playerSide}
+                                <i class="trophy icon"></i>
+                                {:else}
+                                <i class="flag outline icon"></i>
+                                {/if}
+                            {/if}
+                            <strong>{(game.result == 1) ? 'White' : 'Black'} wins</strong>
+                        {/if}
+                    </div>
+                    {/if}
+                </div>
+                {#if gameid = null}
+                <div class="item">
                     <div class="ui two buttons">
                         <div class="ui {(game.turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</div>
                         <div class="ui {(game.turn == game.moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
                     </div>
-                    {/if}
                 </div>
+                {/if}
 
                 {#each game.moves as move, i}
                 <a href="#self" class="item {(game.turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
