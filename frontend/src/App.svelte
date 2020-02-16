@@ -250,6 +250,21 @@
             case "resign":
                 receiveResignation(message);
                 break;
+            case "draw":
+                showMessage("Both players have agreed to end the game in a draw.", "Draw agreed");
+                game.result = 0.5;
+                game.updateResultTag();
+                gameid = null;
+                gameHost = false;
+                game = game;
+                break;
+            case "offerdraw":
+                showRespondDraw();
+                break;
+            case "declinedraw":
+                hideOfferDraw();
+                showMessage("Your opponent has declined your offer of a draw.", "Draw declined");
+                break;
         }
     }
 
@@ -371,6 +386,33 @@
         });
     }
 
+    function offerDraw() {
+        sendMessage({
+            action: "draw",
+            mode: "offer",
+            id: gameid
+        });
+        hideOfferDraw();
+    }
+
+    function agreeDraw() {
+        sendMessage({
+            action: "draw",
+            mode: "agree",
+            id: gameid
+        });
+        hideRespondDraw();
+    }
+
+    function declineDraw() {
+        sendMessage({
+            action: "draw",
+            mode: "decline",
+            id: gameid
+        });
+        hideRespondDraw();
+    }
+
     function showNewGame() {
         window.$('#newgame_modal').modal('show');
     }
@@ -397,6 +439,22 @@
 
     function hideResign() {
         window.$('#resign_modal').modal('hide');
+    }
+
+    function showOfferDraw() {
+        window.$('#draw_offer_modal').modal('show');
+    }
+
+    function hideOfferDraw() {
+        window.$('#draw_offer_modal').modal('hide');
+    }
+
+    function showRespondDraw() {
+        window.$('#draw_respond_modal').modal('show');
+    }
+
+    function hideRespondDraw() {
+        window.$('#draw_respond_modal').modal('hide');
     }
 
     function showImport() {
@@ -463,6 +521,7 @@
         {showNewGame}
         {showJoin}
         {showResign}
+        {showOfferDraw}
         {exportGame}
         {rotateBoard}
         />
@@ -517,6 +576,30 @@
         <div class="actions">
             <div class="ui basic button" on:click={hideResign}>Cancel</div>
             <div class="ui positive button" on:click={resignGame}>Resign</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="draw_offer_modal">
+        <i class="close icon"></i>
+        <div class="header">Offer a draw</div>
+        <div class="content">
+            <p>Would you like to offer the other player a draw?</p>
+        </div>
+        <div class="actions">
+            <div class="ui basic button" on:click={hideOfferDraw}>Cancel</div>
+            <div class="ui positive button" on:click={offerDraw}>Offer draw</div>
+        </div>
+    </div>
+
+    <div class="ui modal" id="draw_respond_modal">
+        <i class="close icon"></i>
+        <div class="header">A draw has been offered</div>
+        <div class="content">
+            <p>The other player has offered to end the game in a draw.  How will you respond?</p>
+        </div>
+        <div class="actions">
+            <div class="ui negative button" on:click={declineDraw}>Decline</div>
+            <div class="ui positive button" on:click={agreeDraw}>Agree to a draw</div>
         </div>
     </div>
 

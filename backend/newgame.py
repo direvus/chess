@@ -32,7 +32,9 @@ def create_game(connid, request):
             'turn': int(game['turn']),
             'tags': {x: y for x, y in game['tags'].items() if y != ''},
             'result': game['result'] or None
-        }
+        },
+        'draw_host': False,
+        'draw_guest': False,
     }
     TABLE.put_item(
         Item=data,

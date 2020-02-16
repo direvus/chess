@@ -11,6 +11,7 @@
     export let showNewGame;
     export let showJoin;
     export let showResign;
+    export let showOfferDraw;
     export let exportGame;
     export let rotateBoard;
 </script>
@@ -33,6 +34,7 @@
                 <div class="item {(gameid || result != null) ? 'disabled' : ''}" on:click={showNewGame}><i class="user plus icon"></i> Invite player</div>
                 <div class="item {(gameid) ? 'disabled' : ''}" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
                 <div class="item {(gameid) ? '' : 'disabled'}" on:click={showResign}><i class="flag outline icon"></i> Resign</div>
+                <div class="item {(gameid) ? '' : 'disabled'}" on:click={showOfferDraw}><i class="balance scale icon"></i> Offer draw</div>
                 <div class="divider"></div>
                 <div class="header">Export</div>
                 <div class="item" on:click={exportGame}><i class="download icon"></i> Export as PGN</div>

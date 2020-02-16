@@ -144,6 +144,22 @@ Resources:
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResignFunction.Arn}/invocations'
 
+  DrawRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: draw
+      AuthorizationType: NONE
+      OperationName: DrawRoute
+      Target: !Sub 'integrations/${DrawInteg}'
+  DrawInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Draw Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DrawFunction.Arn}/invocations'
+
   Stage:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
@@ -387,6 +403,31 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ResignFunction
+      Principal: apigateway.amazonaws.com
+
+  DrawFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Handler: draw.lambda_handler
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageName
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      MemorySize: 256
+      Role: !GetAtt [LambdaRole, Arn]
+      Tags:
+        - Key: app
+          Value: chess
+  DrawPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DrawFunction
       Principal: apigateway.amazonaws.com
 
 Outputs:
