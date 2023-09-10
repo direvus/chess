@@ -238,7 +238,7 @@ Resources:
   ConnectFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: connect.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -261,7 +261,7 @@ Resources:
   DisconnectFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: disconnect.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -283,7 +283,7 @@ Resources:
   NewGameFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: newgame.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -308,7 +308,7 @@ Resources:
   CancelGameFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: cancelgame.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -333,7 +333,7 @@ Resources:
   JoinGameFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: join.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -358,7 +358,7 @@ Resources:
   MoveFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: move.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -383,7 +383,7 @@ Resources:
   ResignFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: resign.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
@@ -408,7 +408,7 @@ Resources:
   DrawFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: python3.7
+      Runtime: python3.11
       Handler: draw.lambda_handler
       Code:
         S3Bucket: !Ref BucketName
