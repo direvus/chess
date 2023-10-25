@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x]
+        node-version: [18.x]
 
     steps:
     - uses: actions/checkout@v1
@@ -35,4 +35,3 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: ap-southeast-2
         SOURCE_DIR: "frontend/public"
-
