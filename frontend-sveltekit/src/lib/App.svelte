@@ -1,17 +1,17 @@
-<script lang="ts">
-    import Grid from '$lib/Grid.svelte';
-    import Menu from '$lib/Menu.svelte';
-    import Status from '$lib/Status.svelte';
-    import Message from '$lib/Message.svelte';
+<script>
+    import Grid from './Grid.svelte';
+    import Menu from './Menu.svelte';
+    import Status from './Status.svelte';
+    import Message from './Message.svelte';
 
-    import {Game, Ref, Move,
+    import {Ref, Move,
         WHITE_PAWN, WHITE_KING, WHITE_QUEEN,
         WHITE_KNIGHT, WHITE_ROOK, WHITE_BISHOP,
         BLACK_PAWN, BLACK_KING, BLACK_QUEEN,
         BLACK_KNIGHT, BLACK_ROOK, BLACK_BISHOP,
-        readPGN, getPGNDate} from '$lib/chess.js';
+        readPGN, getPGNDate} from './chess.js';
 
-    let game = new Game();
+    export let game;
 
     const PROMOTIONS_WHITE = [
         WHITE_QUEEN,
@@ -539,7 +539,7 @@
             <p>They can click <strong>"Join game"</strong> and input the code in their own browser to join you.</p>
         </div>
         <div class="actions">
-            <button class="ui negative button" on:click={cancelInvite}>Cancel</button>
+            <div class="ui negative button" on:click={cancelInvite}>Cancel</div>
         </div>
     </div>
 
@@ -549,21 +549,21 @@
         <div class="content">
             <div class="ui form">
                 <div class="field">
-                    <label for="name_input">Your name</label>
-                    <input id="name_input" type="text" placeholder="Your name" bind:value={playerName}>
+                    <label>Your name</label>
+                    <input type="text" placeholder="Your name" bind:value={playerName}>
                 </div>
                 <p>The game host will send you a code.  Type it in here!</p>
                 <div class="field">
-                    <label for="code_input">Game code</label>
+                    <label>Game code</label>
                     <div class="ui massive input">
-                        <input id="code_input" type="text" placeholder="Game code" bind:value={joincode}>
+                        <input type="text" placeholder="Game code" bind:value={joincode}>
                     </div>
                 </div>
             </div>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideJoin}>Dismiss</button>
-            <button class="ui positive button" on:click={joinGame}>Join</button>
+            <div class="ui basic button" on:click={hideJoin}>Dismiss</div>
+            <div class="ui positive button" on:click={joinGame}>Join</div>
         </div>
     </div>
 
@@ -574,8 +574,8 @@
             <p>Would you like to resign from this game?</p>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideResign}>Cancel</button>
-            <button class="ui positive button" on:click={resignGame}>Resign</button>
+            <div class="ui basic button" on:click={hideResign}>Cancel</div>
+            <div class="ui positive button" on:click={resignGame}>Resign</div>
         </div>
     </div>
 
@@ -586,8 +586,8 @@
             <p>Would you like to offer the other player a draw?</p>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideOfferDraw}>Cancel</button>
-            <button class="ui positive button" on:click={offerDraw}>Offer draw</button>
+            <div class="ui basic button" on:click={hideOfferDraw}>Cancel</div>
+            <div class="ui positive button" on:click={offerDraw}>Offer draw</div>
         </div>
     </div>
 
@@ -598,8 +598,8 @@
             <p>The other player has offered to end the game in a draw.  How will you respond?</p>
         </div>
         <div class="actions">
-            <button class="ui negative button" on:click={declineDraw}>Decline</button>
-            <button class="ui positive button" on:click={agreeDraw}>Agree to a draw</button>
+            <div class="ui negative button" on:click={declineDraw}>Decline</div>
+            <div class="ui positive button" on:click={agreeDraw}>Agree to a draw</div>
         </div>
     </div>
 
@@ -609,14 +609,14 @@
         <div class="content">
             <div class="ui form">
                 <div class="field">
-                    <label for="import_input">Enter a game in <a href="https://www.chessclub.com/help/PGN-spec">Portable Game Notation (PGN)</a></label>
-                    <textarea id="import_input" bind:value={importText} rows="12"></textarea>
+                    <label>Enter a game in <a href="https://www.chessclub.com/help/PGN-spec">Portable Game Notation (PGN)</a></label>
+                    <textarea bind:value={importText} rows="12"></textarea>
                 </div>
             </div>
         </div>
         <div class="actions">
-            <button class="ui positive button" on:click={importGame}>Import</button>
-            <button class="ui button" on:click={hideImport}>Dismiss</button>
+            <div class="ui positive button" on:click={importGame}>Import</div>
+            <div class="ui button" on:click={hideImport}>Dismiss</div>
         </div>
     </div>
 
@@ -625,7 +625,7 @@
         <div class="header">Game export</div>
         <pre><code>{exportPGN}</code></pre>
         <div class="actions">
-            <button class="ui primary button" on:click={hideExport}>Dismiss</button>
+            <div class="ui primary button" on:click={hideExport}>Dismiss</div>
         </div>
     </div>
 
@@ -633,7 +633,7 @@
         <i class="close icon"></i>
         <Message {...message}/>
         <div class="actions">
-            <button class="ui primary button" on:click={hideMessage}>Dismiss</button>
+            <div class="ui primary button" on:click={hideMessage}>Dismiss</div>
         </div>
     </div>
 
@@ -646,12 +646,12 @@
             <div class="ui form">
                 <h4 class="ui dividing header">Player details</h4>
                 <div class="field">
-                    <label for="player_name_input">Your name</label>
-                    <input id="player_name_input" type="text" placeholder="Your name" bind:value={playerName}>
+                    <label>Your name</label>
+                    <input type="text" placeholder="Your name" bind:value={playerName}>
                 </div>
                 <div class="field">
-                    <label for="side_input">Your side</label>
-                    <div id="side_input" class="ui massive two buttons">
+                    <label>Your side</label>
+                    <div class="ui massive two buttons">
                         <div class="ui button {(hostWhite) ? 'active': ''}" on:click={() => setHostWhite(true)}>
                             <div>{WHITE_KING}</div>
                             <div><small>White</small></div>
@@ -665,8 +665,8 @@
             </div>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideNewGame}>Cancel</button>
-            <button class="ui positive button" on:click={createInvite}>Start game</button>
+            <div class="ui basic button" on:click={hideNewGame}>Cancel</div>
+            <div class="ui positive button" on:click={createInvite}>Start game</div>
         </div>
     </div>
 
@@ -737,7 +737,7 @@
             </div>
         </div>
         <div class="actions">
-            <button class="ui primary button" on:click={hideEdit}>Close</button>
+            <div class="ui primary button" on:click={hideEdit}>Close</div>
         </div>
     </div>
 
@@ -746,14 +746,14 @@
         <div class="content">
             <div class="ui massive four buttons">
                 {#each PROMOTIONS_WHITE as piece, i}
-                <button class="ui button {(promotionWhite == i) ? 'active': ''}" on:click={() => setPromotionWhite(i)}>
+                <div class="ui button {(promotionWhite == i) ? 'active': ''}" on:click={() => setPromotionWhite(i)}>
                     <div>{piece}</div>
-                </button>
+                </div>
                 {/each}
             </div>
         </div>
         <div class="actions">
-            <button class="ui primary button" on:click={promoteWhiteCall}>Promote</button>
+            <div class="ui primary button" on:click={promoteWhiteCall}>Promote</div>
         </div>
     </div>
 
@@ -762,14 +762,14 @@
         <div class="content">
             <div class="ui massive four buttons">
                 {#each PROMOTIONS_BLACK as piece, i}
-                <button class="ui button {(promotionBlack == i) ? 'active': ''}" on:click={() => setPromotionBlack(i)}>
+                <div class="ui button {(promotionBlack == i) ? 'active': ''}" on:click={() => setPromotionBlack(i)}>
                     <div>{piece}</div>
-                </button>
+                </div>
                 {/each}
             </div>
         </div>
         <div class="actions">
-            <button class="ui primary button" on:click={promoteBlackCall}>Promote</button>
+            <div class="ui primary button" on:click={promoteBlackCall}>Promote</div>
         </div>
     </div>
 
@@ -799,3 +799,6 @@
         </div>
     </div>
 </main>
+
+<style>
+</style>
