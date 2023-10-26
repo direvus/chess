@@ -5,7 +5,7 @@ import {
     Ref, Move, Game, copyBoard, findPieces, getPieces, getSide, onSide,
     findCheck, getMoves, validateMove, inCheckmate, inStalemate,
     writeTagValuePGN, readPGN, parseSAN
-    } from '../src/chess.js';
+    } from '../src/lib/chess.js';
 
 const INITIAL_BOARD = [
     ['♜','♞','♝','♛','♚','♝','♞','♜'],

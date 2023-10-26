@@ -26,7 +26,7 @@
             <i class="dropdown icon"></i>
             <div class="menu">
                 <div class="header">Offline</div>
-                <div class="item {(gameid) ? 'disabled' : ''}" on:click={resetGame}><i class="star outline icon"></i> New game</div>
+                <div class="item {(gameid) ? 'disabled' : ''}" on:click={resetGame} role="button"><i class="star outline icon"></i> New game</div>
                 <div class="item {(gameid) ? 'disabled' : ''}" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
                 <div class="item {(gameid) ? 'disabled' : ''}" on:click={showImport}><i class="upload icon"></i> Import from PGN</div>
                 <div class="divider"></div>

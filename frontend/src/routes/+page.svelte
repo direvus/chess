@@ -58,16 +58,6 @@
         window.$('#message_modal').modal('show');
     }
 
-    function showWarning(text, header='') {
-        message = {
-            "level": "warning",
-            "icon": "exclamation triangle",
-            "header": header,
-            "message": text
-        };
-        window.$('#message_modal').modal('show');
-    }
-
     function showError(text, header='') {
         message = {
             "level": "error",
@@ -222,20 +212,22 @@
                 showSuccess(success, "Game joined");
                 break;
             case "hostgame":
-                gameid = message.id;
-                hostWhite = message.host_plays_white;
-                playerSide = (hostWhite) ? 1 : 0;
-                loadGameFromMessage(message.game);
-                hideInvite();
+                {
+                    gameid = message.id;
+                    hostWhite = message.host_plays_white;
+                    playerSide = (hostWhite) ? 1 : 0;
+                    loadGameFromMessage(message.game);
+                    hideInvite();
 
-                side = (playerSide) ? 'White' : 'Black';
-                let tagname = (playerSide) ? 'Black' : 'White';
-                let guest = 'A player';
-                if (game.tags[tagname]) {
-                    guest = game.tags[tagname];
+                    side = (playerSide) ? 'White' : 'Black';
+                    let tagname = (playerSide) ? 'Black' : 'White';
+                    let guest = 'A player';
+                    if (game.tags[tagname]) {
+                        guest = game.tags[tagname];
+                    }
+                    success = "OK!  " + guest + " has joined the game.  You are playing " + side + ".";
+                    showSuccess(success, "Player joined");
                 }
-                success = "OK!  " + guest + " has joined the game.  You are playing " + side + ".";
-                showSuccess(success, "Player joined");
                 break;
             case "move":
                 gameid = message.id;

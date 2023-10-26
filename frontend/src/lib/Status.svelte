@@ -42,8 +42,8 @@
     {#if gameid == null}
     <div class="item">
         <div class="ui two buttons">
-            <div class="ui {(turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</div>
-            <div class="ui {(turn == moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</div>
+            <button class="ui {(turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</button>
+            <button class="ui {(turn == moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</button>
         </div>
     </div>
     {/if}
