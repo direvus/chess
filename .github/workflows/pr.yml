@@ -1,9 +1,6 @@
 name: Node CI
 
-on:
-  push:
-    branches:
-      - master
+on: pull_request
 
 jobs:
   build:
@@ -28,13 +25,3 @@ jobs:
       working-directory: frontend
       env:
         CI: true
-    - name: S3 Sync
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      with:
-        args: --acl public-read --delete
-      env:
-        AWS_S3_BUCKET: chess.swords.id.au
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ap-southeast-2
-        SOURCE_DIR: "frontend/static"
