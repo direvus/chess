@@ -11,7 +11,7 @@
         BLACK_KNIGHT, BLACK_ROOK, BLACK_BISHOP,
         readPGN, getPGNDate} from '$lib/chess.js';
 
-    let game = new Game();
+    let game = $state(new Game());
 
     const PROMOTIONS_WHITE = [
         WHITE_QUEEN,
@@ -24,29 +24,29 @@
         BLACK_ROOK,
         BLACK_BISHOP];
 
-    let rows = [0, 1, 2, 3, 4, 5, 6, 7];
-    let cols = [0, 1, 2, 3, 4, 5, 6, 7];
-    let promotionWhite = 0;
-    let promotionBlack = 0;
-    let promoteWhiteCall = null;
-    let promoteBlackCall = null;
-    let rotation = false;
+    let rows = $state([0, 1, 2, 3, 4, 5, 6, 7]);
+    let cols = $state([0, 1, 2, 3, 4, 5, 6, 7]);
+    let promotionWhite = $state(0);
+    let promotionBlack = $state(0);
+    let promoteWhiteCall = $state(null);
+    let promoteBlackCall = $state(null);
+    let rotation = $state(false);
     let autorotate = false;
     let ws = null;
     let messageQueue = [];
-    let gameid = null;
-    let joincode = '';
-    let hostWhite = true;
-    let playerSide = null;
-    let playerName = '';
-    let exportPGN = '';
-    let importText = '';
-    let message = {
+    let gameid = $state(null);
+    let joincode = $state('');
+    let hostWhite = $state(true);
+    let playerSide = $state(null);
+    let playerName = $state('');
+    let exportPGN = $state('');
+    let importText = $state('');
+    let message = $state({
         "level": "info",
         "icon": "info circle",
         "header": '',
         "message": ''
-    };
+    });
 
     function showMessage(text, header='') {
         message = {
@@ -521,7 +521,7 @@
             <p>They can click <strong>"Join game"</strong> and input the code in their own browser to join you.</p>
         </div>
         <div class="actions">
-            <button class="ui negative button" on:click={cancelInvite}>Cancel</button>
+            <button class="ui negative button" onclick={cancelInvite}>Cancel</button>
         </div>
     </div>
 
@@ -544,8 +544,8 @@
             </div>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideJoin}>Dismiss</button>
-            <button class="ui positive button" on:click={joinGame}>Join</button>
+            <button class="ui basic button" onclick={hideJoin}>Dismiss</button>
+            <button class="ui positive button" onclick={joinGame}>Join</button>
         </div>
     </div>
 
@@ -556,8 +556,8 @@
             <p>Would you like to resign from this game?</p>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideResign}>Cancel</button>
-            <button class="ui positive button" on:click={resignGame}>Resign</button>
+            <button class="ui basic button" onclick={hideResign}>Cancel</button>
+            <button class="ui positive button" onclick={resignGame}>Resign</button>
         </div>
     </div>
 
@@ -568,8 +568,8 @@
             <p>Would you like to offer the other player a draw?</p>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideOfferDraw}>Cancel</button>
-            <button class="ui positive button" on:click={offerDraw}>Offer draw</button>
+            <button class="ui basic button" onclick={hideOfferDraw}>Cancel</button>
+            <button class="ui positive button" onclick={offerDraw}>Offer draw</button>
         </div>
     </div>
 
@@ -580,8 +580,8 @@
             <p>The other player has offered to end the game in a draw.  How will you respond?</p>
         </div>
         <div class="actions">
-            <button class="ui negative button" on:click={declineDraw}>Decline</button>
-            <button class="ui positive button" on:click={agreeDraw}>Agree to a draw</button>
+            <button class="ui negative button" onclick={declineDraw}>Decline</button>
+            <button class="ui positive button" onclick={agreeDraw}>Agree to a draw</button>
         </div>
     </div>
 
@@ -597,8 +597,8 @@
             </div>
         </div>
         <div class="actions">
-            <button class="ui positive button" on:click={importGame}>Import</button>
-            <button class="ui button" on:click={hideImport}>Dismiss</button>
+            <button class="ui positive button" onclick={importGame}>Import</button>
+            <button class="ui button" onclick={hideImport}>Dismiss</button>
         </div>
     </div>
 
@@ -607,7 +607,7 @@
         <div class="header">Game export</div>
         <pre><code>{exportPGN}</code></pre>
         <div class="actions">
-            <button class="ui primary button" on:click={hideExport}>Dismiss</button>
+            <button class="ui primary button" onclick={hideExport}>Dismiss</button>
         </div>
     </div>
 
@@ -615,7 +615,7 @@
         <i class="close icon"></i>
         <Message {...message}/>
         <div class="actions">
-            <button class="ui primary button" on:click={hideMessage}>Dismiss</button>
+            <button class="ui primary button" onclick={hideMessage}>Dismiss</button>
         </div>
     </div>
 
@@ -634,11 +634,11 @@
                 <div class="field">
                     <label for="side_input">Your side</label>
                     <div id="side_input" class="ui massive two buttons">
-                        <button class="ui button {(hostWhite) ? 'active': ''}" on:click={() => setHostWhite(true)}>
+                        <button class="ui button {(hostWhite) ? 'active': ''}" onclick={() => setHostWhite(true)}>
                             <div>{WHITE_KING}</div>
                             <div><small>White</small></div>
                         </button>
-                        <button class="ui button {(hostWhite) ? '': 'active'}" on:click={() => setHostWhite(false)}>
+                        <button class="ui button {(hostWhite) ? '': 'active'}" onclick={() => setHostWhite(false)}>
                             <div>{BLACK_KING}</div>
                             <div><small>Black</small></div>
                         </button>
@@ -647,8 +647,8 @@
             </div>
         </div>
         <div class="actions">
-            <button class="ui basic button" on:click={hideNewGame}>Cancel</button>
-            <button class="ui positive button" on:click={createInvite}>Start game</button>
+            <button class="ui basic button" onclick={hideNewGame}>Cancel</button>
+            <button class="ui positive button" onclick={createInvite}>Start game</button>
         </div>
     </div>
 
@@ -719,7 +719,7 @@
             </div>
         </div>
         <div class="actions">
-            <button class="ui primary button" on:click={hideEdit}>Close</button>
+            <button class="ui primary button" onclick={hideEdit}>Close</button>
         </div>
     </div>
 
@@ -728,14 +728,14 @@
         <div class="content">
             <div class="ui massive four buttons">
                 {#each PROMOTIONS_WHITE as piece, i}
-                <button class="ui button {(promotionWhite == i) ? 'active': ''}" on:click={() => setPromotionWhite(i)}>
+                <button class="ui button {(promotionWhite == i) ? 'active': ''}" onclick={() => setPromotionWhite(i)}>
                     <div>{piece}</div>
                 </button>
                 {/each}
             </div>
         </div>
         <div class="actions">
-            <button class="ui primary button" on:click={promoteWhiteCall}>Promote</button>
+            <button class="ui primary button" onclick={promoteWhiteCall}>Promote</button>
         </div>
     </div>
 
@@ -744,14 +744,14 @@
         <div class="content">
             <div class="ui massive four buttons">
                 {#each PROMOTIONS_BLACK as piece, i}
-                <button class="ui button {(promotionBlack == i) ? 'active': ''}" on:click={() => setPromotionBlack(i)}>
+                <button class="ui button {(promotionBlack == i) ? 'active': ''}" onclick={() => setPromotionBlack(i)}>
                     <div>{piece}</div>
                 </button>
                 {/each}
             </div>
         </div>
         <div class="actions">
-            <button class="ui primary button" on:click={promoteBlackCall}>Promote</button>
+            <button class="ui primary button" onclick={promoteBlackCall}>Promote</button>
         </div>
     </div>
 

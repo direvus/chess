@@ -1,19 +1,21 @@
-<script>
-    export let result;
-    export let white;
-    export let black;
-    export let gameid;
-    export let autorotate;
+<script lang="ts">
 
-    export let resetGame;
-    export let editGame;
-    export let showImport;
-    export let showNewGame;
-    export let showJoin;
-    export let showResign;
-    export let showOfferDraw;
-    export let exportGame;
-    export let rotateBoard;
+    let {
+        result,
+        white,
+        black,
+        gameid,
+        autorotate = $bindable(),
+        resetGame,
+        editGame,
+        showImport,
+        showNewGame,
+        showJoin,
+        showResign,
+        showOfferDraw,
+        exportGame,
+        rotateBoard
+    } = $props();
 </script>
 
 <div class="ui fixed inverted menu">
@@ -26,25 +28,25 @@
             <i class="dropdown icon"></i>
             <div class="menu">
                 <div class="header">Offline</div>
-                <div class="item {(gameid) ? 'disabled' : ''}" on:click={resetGame} role="button"><i class="star outline icon"></i> New game</div>
-                <div class="item {(gameid) ? 'disabled' : ''}" on:click={editGame}><i class="pencil icon"></i> Edit game</div>
-                <div class="item {(gameid) ? 'disabled' : ''}" on:click={showImport}><i class="upload icon"></i> Import from PGN</div>
+                <div class="item {(gameid) ? 'disabled' : ''}" onclick={resetGame} role="button"><i class="star outline icon"></i> New game</div>
+                <div class="item {(gameid) ? 'disabled' : ''}" onclick={editGame}><i class="pencil icon"></i> Edit game</div>
+                <div class="item {(gameid) ? 'disabled' : ''}" onclick={showImport}><i class="upload icon"></i> Import from PGN</div>
                 <div class="divider"></div>
                 <div class="header">Online</div>
-                <div class="item {(gameid || result != null) ? 'disabled' : ''}" on:click={showNewGame}><i class="user plus icon"></i> Invite player</div>
-                <div class="item {(gameid) ? 'disabled' : ''}" on:click={showJoin}><i class="handshake icon"></i> Join game</div>
-                <div class="item {(gameid) ? '' : 'disabled'}" on:click={showResign}><i class="flag outline icon"></i> Resign</div>
-                <div class="item {(gameid) ? '' : 'disabled'}" on:click={showOfferDraw}><i class="balance scale icon"></i> Offer draw</div>
+                <div class="item {(gameid || result != null) ? 'disabled' : ''}" onclick={showNewGame}><i class="user plus icon"></i> Invite player</div>
+                <div class="item {(gameid) ? 'disabled' : ''}" onclick={showJoin}><i class="handshake icon"></i> Join game</div>
+                <div class="item {(gameid) ? '' : 'disabled'}" onclick={showResign}><i class="flag outline icon"></i> Resign</div>
+                <div class="item {(gameid) ? '' : 'disabled'}" onclick={showOfferDraw}><i class="balance scale icon"></i> Offer draw</div>
                 <div class="divider"></div>
                 <div class="header">Export</div>
-                <div class="item" on:click={exportGame}><i class="download icon"></i> Export as PGN</div>
+                <div class="item" onclick={exportGame}><i class="download icon"></i> Export as PGN</div>
             </div>
         </div>
         <div class="ui simple dropdown item">
             <i class="eye icon"></i> View
             <i class="dropdown icon"></i>
             <div class="menu">
-                <div class="item" on:click={rotateBoard}><i class="sync alternate icon"></i>Rotate board</div>
+                <div class="item" onclick={rotateBoard}><i class="sync alternate icon"></i>Rotate board</div>
                 <div class="divider"></div>
                 <div class="item">
                     <div class="ui toggle checkbox">

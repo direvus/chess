@@ -1,5 +1,10 @@
-<script>
-    export let level, icon, header, message;
+<script lang="ts">
+    let {
+        level,
+        icon,
+        header,
+        message
+    } = $props();
 </script>
 
 <div class="ui {level} attached icon message">

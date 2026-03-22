@@ -1,21 +1,23 @@
-<script>
+<script lang="ts">
     import Cell from './Cell.svelte';
     import {WHITES} from './chess.js';
 
-    export let board;
-    export let side;
-    export let rows;
-    export let cols;
-    export let rotation;
-    export let doMove;
-    export let rotateBoard;
-    export let isPlayerTurn;
+    let {
+        board,
+        side,
+        rows,
+        cols,
+        rotation,
+        doMove,
+        rotateBoard,
+        isPlayerTurn
+    } = $props();
 
     const ROW_LABELS = ['8', '7', '6', '5', '4', '3', '2', '1'];
     const COL_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-    let col = -1;
-    let row = -1;
+    let col = $state(-1);
+    let row = $state(-1);
 
     function clickCell(r, c) {
         if (!isPlayerTurn()) {
@@ -40,7 +42,7 @@
     <thead>
         <tr>
             <th>
-                <button class="ui toggle icon button {(rotation) ? 'active' : ''}" on:click={rotateBoard} title="Rotate board view">
+                <button class="ui toggle icon button {(rotation) ? 'active' : ''}" onclick={rotateBoard} title="Rotate board view">
                     <i class="sync alternate icon"></i>
                 </button>
             </th>

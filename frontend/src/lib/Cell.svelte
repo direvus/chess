@@ -1,9 +1,11 @@
-<script>
-    export let value;
-    export let selected;
+<script lang="ts">
+    import { createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
+    let { value, selected } = $props();
 </script>
 
-<td on:click class={selected ? 'selected' : ''}>{value}</td>
+<td onclick={bubble('click')} class={selected ? 'selected' : ''}>{value}</td>
 
 <style>
     td {

@@ -1,13 +1,15 @@
-<script>
+<script lang="ts">
     import {WHITE_PAWN, BLACK_PAWN} from './chess.js';
-    export let result;
-    export let turn;
-    export let moves;
-    export let side;
-    export let gameid;
-    export let goBack;
-    export let goForward;
-    export let selectTurn;
+    let {
+        result,
+        turn,
+        moves,
+        side,
+        gameid,
+        goBack,
+        goForward,
+        selectTurn
+    } = $props();
 </script>
 
 <div class="ui fluid vertical menu">
@@ -42,14 +44,14 @@
     {#if gameid == null}
     <div class="item">
         <div class="ui two buttons">
-            <button class="ui {(turn < 2) ? 'disabled' : ''} button" on:click={goBack}><i class="step backward icon"></i> Back</button>
-            <button class="ui {(turn == moves.length + 1) ? 'disabled' : ''} button" on:click={goForward}><i class="step forward icon"></i> Forward</button>
+            <button class="ui {(turn < 2) ? 'disabled' : ''} button" onclick={goBack}><i class="step backward icon"></i> Back</button>
+            <button class="ui {(turn == moves.length + 1) ? 'disabled' : ''} button" onclick={goForward}><i class="step forward icon"></i> Forward</button>
         </div>
     </div>
     {/if}
 
     {#each moves as move, i}
-    <a href="#self" class="item {(turn == (i + 2)) ? 'active blue' : ''}" on:click={() => selectTurn(i + 1)}>
+    <a href="#self" class="item {(turn == (i + 2)) ? 'active blue' : ''}" onclick={() => selectTurn(i + 1)}>
         <div class="ui grid">
             <div class="two wide column">
                 {#if i % 2 == 0}
