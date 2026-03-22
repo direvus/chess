@@ -11,7 +11,6 @@
         BLACK_KNIGHT, BLACK_ROOK, BLACK_BISHOP,
         readPGN, getPGNDate} from '$lib/chess.js';
 
-    let game = $state(new Game());
 
     const PROMOTIONS_WHITE = [
         WHITE_QUEEN,
@@ -23,6 +22,14 @@
         BLACK_KNIGHT,
         BLACK_ROOK,
         BLACK_BISHOP];
+
+    let game = new Game();
+    let board = $state(game.board);
+    let moves = $state(game.moves);
+    let turn = $state(game.turn);
+    let side = $derived(turn % 2 != 0);
+    let result = $state(null);
+    let tags = $state(game.tags);
 
     let rows = $state([0, 1, 2, 3, 4, 5, 6, 7]);
     let cols = $state([0, 1, 2, 3, 4, 5, 6, 7]);
@@ -47,6 +54,18 @@
         "header": '',
         "message": ''
     });
+
+    function updateGameState() {
+        // Update local state variables from the active Game object. We don't
+        // want to use the Game object as state directly, because it's a pure
+        // Javascript class and I would prefer keeping it that way, rather than
+        // making it a Svelte-specific class with state members.
+        board = game.copyBoard();
+        moves = game.moves.slice();
+        turn = game.turn;
+        result = game.getResult();
+        tags = game.tags;
+    }
 
     function showMessage(text, header='') {
         message = {
@@ -101,7 +120,7 @@
         }
         try {
             const move = game.move(from, to, promotion);
-            game = game;
+            updateGameState();
             updateRotation();
             promoteWhiteCall = null;
             promoteBlackCall = null;
@@ -120,7 +139,7 @@
 
     function resetGame() {
         game.initialise();
-        game = game;
+        updateGameState();
         gameid = null;
         updateRotation();
     }
@@ -148,7 +167,7 @@
             return;
         }
         game.selectTurn(turn);
-        game = game;
+        updateGameState();
         updateRotation();
     }
 
@@ -241,7 +260,7 @@
                 game.result = 0.5;
                 game.updateResultTag();
                 gameid = null;
-                game = game;
+                updateGameState();
                 break;
             case "offerdraw":
                 showRespondDraw();
@@ -257,7 +276,7 @@
         game.result = message.result;
         game.tags["Result"] = message.tag;
         gameid = null;
-        game = game;
+        updateGameState();
         const resigned = (game.result) ? 'Black' : 'White';
         if (game.result == playerSide) {
             showSuccess("Your opponent has resigned.  You win the game!  Congratulations.", resigned + " resigns");
@@ -292,7 +311,7 @@
             game.updateResultTag();
             gameid = null;
         }
-        game = game;
+        updateGameState();
     }
 
     function openSocket() {
@@ -468,6 +487,7 @@
         let result = readPGN(importText);
         if (result) {
             game = result;
+            updateGameState();
         }
         window.$('#import_modal').modal('hide');
     }
@@ -492,9 +512,9 @@
 
 <main>
     <Menu
-        result={game.result}
-        white={game.tags['White']}
-        black={game.tags['Black']}
+        result={result}
+        white={tags['White']}
+        black={tags['Black']}
         {gameid}
         {autorotate}
         {resetGame}
@@ -758,8 +778,8 @@
     <div class="ui grid">
         <div class="twelve wide column">
             <Grid
-                board={game.board}
-                side={game.turn % 2 != 0}
+                board={board}
+                side={side}
                 {rows}
                 {cols}
                 {rotation}
@@ -769,9 +789,9 @@
         </div>
         <div class="four wide computer only column" style="margin-top: 8ex;">
             <Status
-                turn={game.turn}
-                result={game.result}
-                moves={game.moves}
+                turn={turn}
+                result={result}
+                moves={moves}
                 side={playerSide}
                 {gameid}
                 {goBack}
