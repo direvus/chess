@@ -97,22 +97,22 @@
         window.$('#message_modal').modal('show');
     }
 
-    function doMove(fromCol, fromRow, toCol, toRow, promotion=null) {
-        const from = new Ref(fromCol, fromRow);
-        const to = new Ref(toCol, toRow);
+    function doMove(fromRow, fromCol, toRow, toCol, promotion=null) {
+        const from = new Ref(fromRow, fromCol);
+        const to = new Ref(toRow, toCol);
         const piece = game.get(from);
         if (promotion == null) {
             if (piece == WHITE_PAWN && toRow == 0) {
                 promoteWhiteCall = () => {
                     window.$('#promote_modal_white').modal('hide');
-                    doMove(fromCol, fromRow, toCol, toRow, promotionWhite);
+                    doMove(fromRow, fromCol, toRow, toCol, promotionWhite);
                 };
                 window.$('#promote_modal_white').modal('show');
                 return;
             } else if (piece == BLACK_PAWN && toRow == 7) {
                 promoteBlackCall = () => {
                     window.$('#promote_modal_black').modal('hide');
-                    doMove(fromCol, fromRow, toCol, toRow, promotionBlack);
+                    doMove(fromRow, fromCol, toRow, toCol, promotionBlack);
                 };
                 window.$('#promote_modal_black').modal('show');
                 return;
@@ -241,8 +241,8 @@
                     side = (playerSide) ? 'White' : 'Black';
                     let tagname = (playerSide) ? 'Black' : 'White';
                     let guest = 'A player';
-                    if (game.tags[tagname]) {
-                        guest = game.tags[tagname];
+                    if (tags[tagname]) {
+                        guest = tags[tagname];
                     }
                     success = "OK!  " + guest + " has joined the game.  You are playing " + side + ".";
                     showSuccess(success, "Player joined");
@@ -683,55 +683,55 @@
                 <div class="four fields">
                     <div class="field">
                         <label for="event_name_input">Event name</label>
-                        <input id="event_name_input" type="text" placeholder="Event name" bind:value={game.tags["Event"]}>
+                        <input id="event_name_input" type="text" placeholder="Event name" bind:value={tags["Event"]}>
                     </div>
                     <div class="field">
                         <label for="event_location_input">Event location</label>
-                        <input id="event_location_input" type="text" placeholder="Event location" bind:value={game.tags["Site"]}>
+                        <input id="event_location_input" type="text" placeholder="Event location" bind:value={tags["Site"]}>
                     </div>
                     <div class="field">
                         <label for="date_input">Date</label>
-                        <input id="date_input" type="text" placeholder="YYYY.MM.DD" bind:value={game.tags["Date"]}>
+                        <input id="date_input" type="text" placeholder="YYYY.MM.DD" bind:value={tags["Date"]}>
                     </div>
                     <div class="field">
                         <label for="round_input">Round</label>
-                        <input id="round_input" type="text" placeholder="Round" bind:value={game.tags["Round"]}>
+                        <input id="round_input" type="text" placeholder="Round" bind:value={tags["Round"]}>
                     </div>
                 </div>
                 <h4 class="ui dividing header">Players</h4>
                 <div class="two fields">
                     <div class="field">
                         <label for="white_player_input">White player</label>
-                        <input id="white_player_input" type="text" placeholder="Lastname, firstname" bind:value={game.tags["White"]}>
+                        <input id="white_player_input" type="text" placeholder="Lastname, firstname" bind:value={tags["White"]}>
                     </div>
                     <div class="field">
                         <label for="black_player_input">Black player</label>
-                        <input id="black_player_input" type="text" placeholder="Lastname, firstname" bind:value={game.tags["Black"]}>
+                        <input id="black_player_input" type="text" placeholder="Lastname, firstname" bind:value={tags["Black"]}>
                     </div>
                 </div>
                 <h4 class="ui dividing header">Game result</h4>
                 <div class="inline four fields">
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_incomplete_radio" type="radio" name="result" bind:group={game.tags["Result"]} value="*">
+                            <input id="result_incomplete_radio" type="radio" name="result" bind:group={tags["Result"]} value="*">
                             <label for="result_incomplete_radio">Incomplete</label>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_white_radio" type="radio" name="result" bind:group={game.tags["Result"]} value="1-0">
+                            <input id="result_white_radio" type="radio" name="result" bind:group={tags["Result"]} value="1-0">
                             <label for="result_white_radio">White wins</label>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_black_radio" type="radio" name="result" bind:group={game.tags["Result"]} value="0-1">
+                            <input id="result_black_radio" type="radio" name="result" bind:group={tags["Result"]} value="0-1">
                             <label for="result_black_radio">Black wins</label>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_draw_radio" type="radio" name="result" bind:group={game.tags["Result"]} value="1/2-1/2">
+                            <input id="result_draw_radio" type="radio" name="result" bind:group={tags["Result"]} value="1/2-1/2">
                             <label for="result_draw_radio">Draw</label>
                         </div>
                     </div>
