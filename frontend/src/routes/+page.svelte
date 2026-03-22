@@ -64,7 +64,11 @@
         moves = game.moves.slice();
         turn = game.turn;
         result = game.getResult();
-        tags = game.tags;
+        tags = Object.assign({}, game.tags);
+    }
+
+    function saveGameTags() {
+        game.tags = Object.assign({}, tags);
     }
 
     function showMessage(text, header='') {
@@ -174,6 +178,7 @@
     function goBack() {
         if (game.turn > 1) {
             selectTurn(game.turn - 2);
+            updateGameState();
         }
         updateRotation();
     }
@@ -181,6 +186,7 @@
     function goForward() {
         if (game.turn < game.moves.length + 1) {
             selectTurn(game.turn);
+            updateGameState();
         }
         updateRotation();
     }
@@ -480,6 +486,7 @@
     }
 
     function hideEdit() {
+        console.log("in hideEdit");
         window.$('#edit_modal').modal('hide');
     }
 
@@ -683,55 +690,55 @@
                 <div class="four fields">
                     <div class="field">
                         <label for="event_name_input">Event name</label>
-                        <input id="event_name_input" type="text" placeholder="Event name" bind:value={tags["Event"]}>
+                        <input id="event_name_input" type="text" placeholder="Event name" bind:value={tags["Event"]} onkeyup={() => saveGameTags()}>
                     </div>
                     <div class="field">
                         <label for="event_location_input">Event location</label>
-                        <input id="event_location_input" type="text" placeholder="Event location" bind:value={tags["Site"]}>
+                        <input id="event_location_input" type="text" placeholder="Event location" bind:value={tags["Site"]} onkeyup={() => saveGameTags()}>
                     </div>
                     <div class="field">
                         <label for="date_input">Date</label>
-                        <input id="date_input" type="text" placeholder="YYYY.MM.DD" bind:value={tags["Date"]}>
+                        <input id="date_input" type="text" placeholder="YYYY.MM.DD" bind:value={tags["Date"]} onkeyup={() => saveGameTags()}>
                     </div>
                     <div class="field">
                         <label for="round_input">Round</label>
-                        <input id="round_input" type="text" placeholder="Round" bind:value={tags["Round"]}>
+                        <input id="round_input" type="text" placeholder="Round" bind:value={tags["Round"]} onkeyup={() => saveGameTags()}>
                     </div>
                 </div>
                 <h4 class="ui dividing header">Players</h4>
                 <div class="two fields">
                     <div class="field">
                         <label for="white_player_input">White player</label>
-                        <input id="white_player_input" type="text" placeholder="Lastname, firstname" bind:value={tags["White"]}>
+                        <input id="white_player_input" type="text" placeholder="Lastname, firstname" bind:value={tags["White"]} onkeyup={() => saveGameTags()}>
                     </div>
                     <div class="field">
                         <label for="black_player_input">Black player</label>
-                        <input id="black_player_input" type="text" placeholder="Lastname, firstname" bind:value={tags["Black"]}>
+                        <input id="black_player_input" type="text" placeholder="Lastname, firstname" bind:value={tags["Black"]} onkeyup={() => saveGameTags()}>
                     </div>
                 </div>
                 <h4 class="ui dividing header">Game result</h4>
                 <div class="inline four fields">
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_incomplete_radio" type="radio" name="result" bind:group={tags["Result"]} value="*">
+                            <input id="result_incomplete_radio" type="radio" name="result" bind:group={tags["Result"]} value="*" onchange={() => saveGameTags()}>
                             <label for="result_incomplete_radio">Incomplete</label>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_white_radio" type="radio" name="result" bind:group={tags["Result"]} value="1-0">
+                            <input id="result_white_radio" type="radio" name="result" bind:group={tags["Result"]} value="1-0" onchange={() => saveGameTags()}>
                             <label for="result_white_radio">White wins</label>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_black_radio" type="radio" name="result" bind:group={tags["Result"]} value="0-1">
+                            <input id="result_black_radio" type="radio" name="result" bind:group={tags["Result"]} value="0-1" onchange={() => saveGameTags()}>
                             <label for="result_black_radio">Black wins</label>
                         </div>
                     </div>
                     <div class="field">
                         <div class="ui radio checkbox">
-                            <input id="result_draw_radio" type="radio" name="result" bind:group={tags["Result"]} value="1/2-1/2">
+                            <input id="result_draw_radio" type="radio" name="result" bind:group={tags["Result"]} value="1/2-1/2" onchange={() => saveGameTags()}>
                             <label for="result_draw_radio">Draw</label>
                         </div>
                     </div>
