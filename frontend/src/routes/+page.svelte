@@ -486,7 +486,6 @@
     }
 
     function hideEdit() {
-        console.log("in hideEdit");
         window.$('#edit_modal').modal('hide');
     }
 
