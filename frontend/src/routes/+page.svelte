@@ -1,15 +1,15 @@
 <script lang="ts">
-    import Grid from '$lib/Grid.svelte';
-    import Menu from '$lib/Menu.svelte';
-    import Status from '$lib/Status.svelte';
-    import Message from '$lib/Message.svelte';
+    import Grid from '#lib/Grid.svelte';
+    import Menu from '#lib/Menu.svelte';
+    import Status from '#lib/Status.svelte';
+    import Message from '#lib/Message.svelte';
 
     import {Game, Ref, Move,
         WHITE_PAWN, WHITE_KING, WHITE_QUEEN,
         WHITE_KNIGHT, WHITE_ROOK, WHITE_BISHOP,
         BLACK_PAWN, BLACK_KING, BLACK_QUEEN,
         BLACK_KNIGHT, BLACK_ROOK, BLACK_BISHOP,
-        readPGN, getPGNDate} from '$lib/chess.js';
+        readPGN, getPGNDate} from '#lib/chess.js';
 
 
     const PROMOTIONS_WHITE = [
